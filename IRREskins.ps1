@@ -509,10 +509,10 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     function Scan_OnlineSkins ($baseUrl,$Tag,$Quality) {
         $URI = "$baseUrl/?dir=$Tag/$Quality"
         $HTML = Invoke-WebRequest -Uri $URI
-        $fileNames = @()
-        $fileSizes = @()
-        ($HTML.ParsedHtml.getElementsByTagName('span') | Where-Object {$_.className -like 'file-name *'}).innerText | ForEach-Object { $fileNames += $_ }
-        ($HTML.ParsedHtml.getElementsByTagName('span') | Where-Object {$_.className -like 'file-size *'}).innerText | ForEach-Object { $fileSizes += $_ }
+        $fileNames = New-Object System.Collections.Generic.List[System.Object]
+        $fileSizes = New-Object System.Collections.Generic.List[System.Object]
+        ($HTML.ParsedHtml.getElementsByTagName('span') | Where-Object {$_.className -like 'file-name *'}).innerText | ForEach-Object { $fileNames.Add($_) }
+        ($HTML.ParsedHtml.getElementsByTagName('span') | Where-Object {$_.className -like 'file-size *'}).innerText | ForEach-Object { $fileSizes.Add($_) }
         for ($i = 1; $i -lt $fileNames.count; $i++) {
             $fileName = $fileNames[$i].Trim()
             $fileSize = $fileSizes[$i].Trim()
@@ -550,7 +550,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $dtLocalCollection.Rows.Add($row)
         }
         $dvOnlineSkins = New-Object System.Data.DataView($dtsHT.OnlineSkins)
-        $listToDownload = @()
+        $listToDownload = New-Object System.Collections.Generic.List[System.Object]
         # Comparaison des skins locales avec les skins Onlines
         foreach ($row in $dtLocalCollection) {
             $findSkin = $row.SkinCollection
@@ -566,11 +566,11 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                         if ($fileQuality -eq $QualityPref) {
                             # On la récupère si elle est plus récente
                             if ($Online.FileDate -gt $fileDate) {
-                                $listToDownload += $Online.FileUrl
+                                $listToDownload.Add($Online.FileUrl)
                             }
                         }
                         # sinon on télécharge celle qui correspond aux préférences
-                        else { $listToDownload += $Online.FileUrl }
+                        else { $listToDownload.Add($Online.FileUrl) }
                     }
                 }
             }
@@ -582,18 +582,18 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     if ($dvOnlineSkins.Quality -eq $fileQuality) {
                         # Si elle est plus récente on la prend
                         if ($dvOnlineSkins.FileDate -gt $fileDate) {
-                            $listToDownload += $dvOnlineSkins.FileUrl
+                            $listToDownload.Add($dvOnlineSkins.FileUrl)
                         }
                     }
                     # Sinon ben on la prend
-                    else { $listToDownload += $dvOnlineSkins.FileUrl }
+                    else { $listToDownload.Add($dvOnlineSkins.FileUrl) }
                 }
                 # Si elle correspond PAS aux préférences
                 else {
                     # Si la qualité de la locale ne correspond non plus aux préférences
                     if ($fileQuality -ne $QualityPref) {
                         # On la prend si plus récente
-                        if ($dvOnlineSkins.FileDate -gt $fileDate) { $listToDownload += $dvOnlineSkins.FileUrl }
+                        if ($dvOnlineSkins.FileDate -gt $fileDate) { $listToDownload.Add($dvOnlineSkins.FileUrl) }
                     }
                 }
             }
@@ -608,10 +608,10 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                 if ($dvOnlineSkins.Count -eq 2) {
                     foreach ($Online in $dvOnlineSkins) {
                         # Si la qualité correspond aux préférences on la prend
-                        if ($Online.Quality -eq $QualityPref) { $listToDownload += $Online.FileUrl }
+                        if ($Online.Quality -eq $QualityPref) { $listToDownload.Add($Online.FileUrl) }
                     }
                 }
-                else { $listToDownload += $dvOnlineSkins.FileUrl }
+                else { $listToDownload.Add($dvOnlineSkins.FileUrl) }
             }
         }
         $listToDownload = $listToDownload | Sort-Object -Unique
@@ -634,7 +634,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     # LOGIC - Vérification des skins à delete
     function Check_ToDelete ($baseUrl,$Database,$Tag) {
         $LocalDatabase = "Local$Database"
-        $ToDelete = @()
+        $ToDelete = New-Object System.Collections.Generic.List[System.Object]
         $URI = "$baseUrl/$Tag/todelete.txt"
         $SkinsToDelete = (Invoke-WebRequest -Uri $URI).Content
         if ($SkinsToDelete) {
@@ -642,7 +642,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $SkinsToDelete.Replace("`n",";").Split(";") | ForEach-Object {
                 $dvLocalSkins.RowFilter = "FileName = '$_'"
                 if ($dvLocalSkins.Count -gt 0) {
-                    $ToDelete += $_
+                    $ToDelete.Add($_)
                 }
             }
             return $ToDelete
