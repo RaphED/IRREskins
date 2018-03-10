@@ -478,7 +478,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
 	function Unzip_File ($ZipFile,$DestFolder) {
 	    Set-Alias sz "c:\program files\7-zip\7z.exe"
 	    $command = "sz e -y $ZipFile `"-o$DestFolder`" "
-	    $resultUnzip = Invoke-Expression $command | Out-Null
+	    $resultUnzip = Invoke-Expression $command
 		if ($resultUnzip -contains "Everything is Ok") { $resultUnzip = $true } else { $resultUnzip = $false }
 		return $resultUnzip
 	}
@@ -654,7 +654,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
 #region Initialisations
 
     # Base Script Config
-    $version        = 1.4
+    $version        = 1.5
     $baseUrl        = "https://www.lesirreductibles.com/irreskins"
     $fileConf       = "config.json"
 
