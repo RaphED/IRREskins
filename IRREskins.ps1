@@ -652,7 +652,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
 #region Initialisations
 
     # Base Script Config
-    $version        = 1.5
+    $version        = 1.6
     $baseUrl        = "https://www.lesirreductibles.com/irreskins"
     $fileConf       = "config.json"
 
