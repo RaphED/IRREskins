@@ -4,9 +4,7 @@
     IRREskins
     Script de Mise à jour des skins BOS
     par -IRRE-Biluf / biluf@carlton2001.com
-	
-	TEST UTF8
-	
+
     Prérequis :
     - Powershell v3.0+
     - 7-Zip
