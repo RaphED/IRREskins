@@ -474,7 +474,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     }
     # SCRIPT - Unzip
 	function Unzip_File ($ZipFile,$DestFolder) {
-	    Set-Alias sz "c:\program files\7-zip\7z.exe"
+	    Set-Alias sz $ScriptHT.Config.SZip
 	    $command = "sz e -y $ZipFile `"-o$DestFolder`" "
 	    $resultUnzip = Invoke-Expression $command
 		if ($resultUnzip -contains "Everything is Ok") { $resultUnzip = $true } else { $resultUnzip = $false }
