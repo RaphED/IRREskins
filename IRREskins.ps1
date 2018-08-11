@@ -286,13 +286,13 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     function Check_Path_StandAlone ($Path) {
         $ScriptHT.Config.StandAlonePath = $null
         # Je vérifie si il-2.exe est bien présent (si Path non null)
-        if ($Path -ne $null) {
+        if ($null -ne $Path) {
             $checkPath = $Path.ToLower().Replace("\data\graphics\skins","\bin\game\il-2.exe")
             # Si oui alors validation partout
             if (Test-Path $checkPath) { $ScriptHT.Config.StandAlonePath = $checkPath.Replace("\bin\game\il-2.exe","\data\graphics\skins") }
         }
         # Si non alors recherche regedit
-        if (($Path -eq $null) -or ($ScriptHT.Config.StandAlonePath -eq $null)) {
+        if (($null -eq $Path) -or ($null -eq $ScriptHT.Config.StandAlonePath)) {
             (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules').PSObject.Members.Name | ForEach-Object {
                 if ($_ -like "*il-2.exe") {
                     $checkPath = $_.Split('}')[1].ToLower()
@@ -305,13 +305,13 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     function Check_Path_Steam ($Path) {
         $ScriptHT.Config.SteamPath = $null
         # Je vérifie si il-2.exe est bien présent (si Path non null)
-        if ($Path -ne $null) {
+        if ($null -ne $Path) {
             $checkPath = $Path.ToLower().Replace("\steamapps\common\il-2 sturmovik battle of stalingrad\data\graphics\skins","\steamApps\common\il-2 sturmovik battle of stalingrad\bin\game\il-2.exe")
             # Si oui alors validation partout
             if (Test-Path $checkPath) { $ScriptHT.Config.SteamPath = $checkPath.Replace("\bin\game\il-2.exe","\data\graphics\skins") }
         }
         # Si non alors recherche regedit
-        if (($Path -eq $null) -or ($ScriptHT.Config.SteamPath -eq $null)) {
+        if (($null -eq $Path) -or ($null -eq $ScriptHT.Config.SteamPath)) {
             if (Test-Path 'HKLM:\SOFTWARE\Valve\Steam') { $checkPath = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Valve\Steam').InstallPath }
             if (Test-Path 'HKLM:\SOFTWARE\Wow6432Node\Valve\Steam') { $checkPath = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Valve\Steam').InstallPath }
             if ($checkPath) {
@@ -325,19 +325,19 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     function Check_Path_SZip ($Path) {
         $ScriptHT.Config.SZip = $null
         # Je vérifie que 7-Zip est bien présent (si Path non null) et fini par l'exe
-        if (($Path -ne $null) -and (Test-Path $Path) -and ($Path.EndsWith("7z.exe"))) {
+        if (($null -ne $Path) -and (Test-Path $Path) -and ($Path.EndsWith("7z.exe"))) {
             $ScriptHT.Config.SZip = $Path.ToLower()
         }
         # Sinon je cherche
         else {
             # Si on fournit un folder
-            if ($Path -ne $null) {
+            if ($null -ne $Path) {
                 # Si oui alors validation partout
                 $testPath = "$Path\7z.exe"
                 if (Test-Path $testPath) { $ScriptHT.Config.SZip = $testPath.ToLower() }
             }
             # Si non alors recherche dans les ProgramFiles
-            if (($Path -eq $null) -or ($ScriptHT.Config.SZip -eq $null)) {
+            if (($null -eq $Path) -or ($null -eq $ScriptHT.Config.SZip)) {
                 $Paths = @(${env:ProgramFiles(x86)},$env:ProgramFiles)
                 foreach ($Path in $Paths) {
                     $testPath = "$Path\7-Zip\7z.exe"
@@ -354,7 +354,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $gui.TB_StandAlone.Background = "LightGreen"
             $gui.TB_StandAlone.IsEnabled = $true
             $gui.CB_StandAlone.IsEnabled = $true
-            if ($ScriptHT.Config.Pref_StandAlone -ne $null) {
+            if ($null -ne $ScriptHT.Config.Pref_StandAlone) {
                 $gui.CB_StandAlone.IsChecked = $ScriptHT.Config.Pref_StandAlone
             }
         }
@@ -372,7 +372,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $gui.TB_Steam.Background = "LightGreen"
             $gui.TB_Steam.IsEnabled = $true
             $gui.CB_Steam.IsEnabled = $true
-            if ($ScriptHT.Config.Pref_Steam -ne $null) {
+            if ($null -ne $ScriptHT.Config.Pref_Steam) {
                 $gui.CB_Steam.IsChecked = $ScriptHT.Config.Pref_Steam
             }
         }
@@ -385,11 +385,11 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $gui.CB_Steam.IsEnabled = $false
         }
         # Gestion des conflits Checkboxs
-        if (($ScriptHT.Config.StandAlonePath) -and ($ScriptHT.Config.SteamPath -eq $null)) {
+        if (($ScriptHT.Config.StandAlonePath) -and ($null -eq $ScriptHT.Config.SteamPath)) {
             $gui.CB_StandAlone.IsEnabled = $true
             $gui.CB_StandAlone.IsChecked = $true
         }
-        if (($ScriptHT.Config.SteamPath) -and ($ScriptHT.Config.StandAlonePath -eq $null)) {
+        if (($ScriptHT.Config.SteamPath) -and ($null -eq $ScriptHT.Config.StandAlonePath)) {
             $gui.CB_Steam.IsEnabled = $true
             $gui.CB_Steam.IsChecked = $true
         }
@@ -421,7 +421,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $gui.GB_Prerequis_GamePath.Visibility = "Collapsed"
             $gui.GB_Prerequis_SZip.Visibility = "Visible"
         }
-        elseif (($ScriptHT.Config.StandAlonePath -eq $null) -and ($ScriptHT.Config.SteamPath -eq $null)) {
+        elseif (($null -eq $ScriptHT.Config.StandAlonePath) -and ($null -eq $ScriptHT.Config.SteamPath)) {
             $gui.GB_Execution.Visibility = "Collapsed"
             $gui.GB_Prerequis_GamePath.Visibility = "Visible"
             $gui.GB_Prerequis_SZip.Visibility = "Collapsed"
@@ -432,7 +432,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $gui.GB_Prerequis_SZip.Visibility = "Collapsed"
         }
         # KeepFiles
-        if ($ScriptHT.Config.Pref_KeepFiles -ne $null) {
+        if ($null -ne $ScriptHT.Config.Pref_KeepFiles) {
             $gui.CB_KeepFiles.IsChecked = $ScriptHT.Config.Pref_KeepFiles
         }
         else { $gui.CB_KeepFiles.IsChecked = $true }
