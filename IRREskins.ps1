@@ -283,7 +283,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         [void]$ScriptHT.Jobs.Add((
             [PSCustomObject]@{
                 PowerShell = $PowerShell
-                Runspace = $PowerShell.BeginInvoke()
+                Handle = $PowerShell.BeginInvoke()
             }
         ))
     }
@@ -700,18 +700,18 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     $Code = {
         $JobCleanup = $true
         do {    
-            foreach($runspace in $jobs) {            
-                if ($runspace.Runspace.isCompleted) {
-                    $runspace.powershell.EndInvoke($runspace.Runspace) | Out-Null
-                    $runspace.powershell.Runspace.Dispose()
-                    $runspace.powershell.Dispose()
-                    $runspace.Runspace = $null
-                    $runspace.powershell = $null               
+            foreach ($job in $jobs) {            
+                if ($job.Handle.isCompleted) {
+                    $job.PowerShell.EndInvoke($job.Handle) | Out-Null
+                    $job.PowerShell.Runspace.Dispose()
+                    $job.PowerShell.Dispose()
+                    $job.Handle = $null
+                    $job.PowerShell = $null               
                 } 
             }
             $temphash = $jobs.clone()
-            $temphash | Where-Object { $_.runspace -eq $Null } | ForEach-Object { $jobs.remove($_) }        
-            Start-Sleep -Seconds 1     
+            $temphash | Where-Object { $_.Handle -eq $Null } | ForEach-Object { $jobs.Remove($_) }        
+            Start-Sleep -Seconds 1
         } while ($JobCleanup)
     }
     $Powershell = [powershell]::Create().AddScript($Code)
@@ -991,7 +991,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         [void]$ScriptHT.Jobs.Add((
             [PSCustomObject]@{
                 PowerShell = $PowerShell
-                Runspace = $PowerShell.BeginInvoke()
+                Handle = $PowerShell.BeginInvoke()
             }
         ))
     })
@@ -1130,7 +1130,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         [void]$ScriptHT.Jobs.Add((
             [PSCustomObject]@{
                 PowerShell = $PowerShell
-                Runspace = $PowerShell.BeginInvoke()
+                Handle = $PowerShell.BeginInvoke()
             }
         ))
     })
