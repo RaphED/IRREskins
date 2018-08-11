@@ -249,14 +249,14 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $initialSessionState.Commands.Add($SessionStateFunction)
         }
         # Création du Runspace
-        $Runspace = [runspacefactory]::CreateRunspace($initialSessionState)
-        $Runspace.ApartmentState = "STA"
-        $Runspace.ThreadOptions	 = "ReuseThread"
-        $Runspace.Open()
-        $Runspace.SessionStateProxy.SetVariable("Version",$Version)
-        $Runspace.SessionStateProxy.SetVariable("InstallFile",$InstallFile)
-        $Runspace.SessionStateProxy.SetVariable("gui",$gui)
-        $Runspace.SessionStateProxy.SetVariable("ScriptHT",$ScriptHT)
+        $newRunspace = [runspacefactory]::CreateRunspace($initialSessionState)
+        $newRunspace.ApartmentState = "STA"
+        $newRunspace.ThreadOptions	 = "ReuseThread"
+        $newRunspace.Open()
+        $newRunspace.SessionStateProxy.SetVariable("Version",$Version)
+        $newRunspace.SessionStateProxy.SetVariable("InstallFile",$InstallFile)
+        $newRunspace.SessionStateProxy.SetVariable("gui",$gui)
+        $newRunspace.SessionStateProxy.SetVariable("ScriptHT",$ScriptHT)
         # Code d'exécution du Runspace
         $Code = {
             if (Test-Path $ScriptHT.Config.SZip) {
@@ -278,9 +278,14 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             }
         }
         # Invocation du Runspace
-        $PSinstance	 = [powershell]::Create().AddScript($Code)
-        $PSinstance.Runspace = $Runspace
-        $PSinstance.BeginInvoke()
+		$Powershell = [powershell]::Create().AddScript($Code)
+        $Powershell.Runspace = $newRunspace
+        [void]$ScriptHT.Jobs.Add((
+            [PSCustomObject]@{
+                PowerShell = $PowerShell
+                Runspace = $PowerShell.BeginInvoke()
+            }
+        ))
     }
      # SCRIPT - Vérification du Path de BOS StandAlone
     function Check_Path_StandAlone ($Path) {
@@ -678,13 +683,40 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     $ScriptHT.LogsFile              = $env:APPDATA + "\IRREskins\irreskins.log"
     $ScriptHT.DwlFolder             = $env:APPDATA + "\IRREskins\Downloads"
     $ScriptHT.Installations         = @("StandAlone","Steam")
+    $ScriptHT.Jobs                  = [system.collections.arraylist]::Synchronized((New-Object System.Collections.ArrayList))
     $dtsHT                          = [hashtable]::Synchronized(@{})
-    #bases64
+    # bases64
 	$base64img_icon = New-Object System.Windows.Media.Imaging.BitmapImage
 	$base64img_icon.BeginInit()
 	$base64img_icon.StreamSource = [System.IO.MemoryStream][System.Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4QwLECEGeucbIQAABUtJREFUaN7VWk9IG10Q/7Vd06ityWEJEkRFJGjIQSPYsIQoEsX2UPSiICI9eRYRycGjSE/Sg4ZSREqp0ENR0SAhKCiI9g9UsSJYStAgbQwSmpLquq5OD9/nw/V/kl1TBx68fW/27cy8mXkz8/YOERE0hL29PWRmZmq2/l2tFt7f30dpaSnsdjtisZh2EiKNwOFwEAACQBaLhcLhsCbfgdbEHze3202yLN8OBgKBAOl0OgUDb9++vT07QEQ0PDzMiH/+/LlWnyHVjHhpaUnxzPM865tMJsXc5OQkDg4O/h0vVFFRAbvdjo8fP547f3R0xPqDg4N4+vQpWlpacHh4mF4vJEkS1dfXK3Td5XKR0+kkq9XKxoqLi8npdJLT6VTgPnv2LGXDTomB7u7uM94m0dbf358+BqLRqELSAEgQBHI4HFRSUsLGioqKSBAEEgRBgVtXV0eiKKbXC8XjceJ5ngCQ3+8nWZZJFEV6//49I/Tly5dERCSKIvX19alGvGpuVJIkCgQCirGJiQnGwPDwsGLO6/WqQjwREZeqE/jz5w+CwSDMZjO+fv3Kxjc2Nlg/FAphfX0dkiQBAFwuF0KhEPLy8lIP9JLhemNjg7q7u0mv16dsxCaTifr7+2lnZ+dmVGh8fJyMRmPKhJ9uhYWFSQV8dxLJBzY3N2G1WrG7uwsAyMvLg9VqRVFRkeKwOlYbv98PAKiurobVaoUsywqcb9++YW1tDZFIBACg0+kQjUaRnZ2tjQrZbDYmsc7Ozku3fWpqiuG+fv36QrxwOExNTU0Mt6mpSRsV+vDhA/uIzWa7Ev+kFxoaGroS32KxMJtIxB6uHQv5fD7WHxgYUD2x8ng8AIBIJIKdnR31g7lwOMz6VVVVqjOQn58PjuMYE6ozoNfrWf/nz5+qMyCKIjPynJwc9RlwOp2s39vbqzoD4+PjTFC5ubnaeKGsrCwCQBzHnQkdUjHiN2/eKIJBSZK0OchOukYA1NHRQZFIJGkGgsEgtba2KtacnZ3V9iT2eDyqn8LH7dWrVzcTjfr9fqZOajSe5+nTp09JxUIJhRIn4eDgAD6fD8vLy5BlGaurq5iYmGDzZrMZP378AADYbDasrq6yuZqaGrhcLnAch8rKStTW1qa3Mre7u0tms5lJ1G630+joqEI1urq62DPHcQnrumYJTSgUYhkZAKqurr7QiFtaWtjYgwcPaGVlJT0JzeLiIqLRKCRJQmdnJzv6y8rKEAgELnxvZGQERqMRXq8X8XgcDocDQ0NDyMnJAc/zePTo0c2o0HmGKAjCtd1oQ0PDmfeNRiP9+vVL+8rceRU1u92O6enpa68xNjaG9vZ2xVhWVlb6KnM9PT0J57YOhyM9pcWMjIxLA73rwmmJi6KIu3cTl2dSRizLMuLx+H8LcFxiKeD/0NzcjCdPnrBUVK/X4/79+0xNzxNU0jswMzODxsZG9nzv3j0YDAYYDIakiD+Ghw8fsnWOid/e3kZdXR0+f/6szg7Mzc3B7XYDAMrLyy91kyfh9+/frB+PxxGLxVhd6CLQ6XQQBAHBYBD19fX48uULCgoKknej8/PzZ25abrKZTKYrD7tLVWhra+tKqWkJkUgEW1tbyatQc3Mzvn//jp6eHgBAcXExPB7PmfrOebCysgKv1wsAaGtrg8vluvI9nU6H3t5eBINBcByHd+/e4fHjx6mfxC9evCCTyZTQCZloWeUY1tbWiOO4a18KanbJd1l1+p+85DsNJ2s7iZRJ/omb+lt/T1xWVna7b+pFUVTcnWn5r0TSOfFVEIvFYLFYwPM8FhYWYDAYNDGBv+RUPu9Ne3B4AAAAAElFTkSuQmCC")
 	$base64img_icon.EndInit()
-	$base64img_icon.Freeze()
+    $base64img_icon.Freeze()
+    # Background Runspace to clean up jobs
+    $newRunspace = [runspacefactory]::CreateRunspace()
+    $newRunspace.ApartmentState = "STA"
+    $newRunspace.ThreadOptions = "ReuseThread"          
+    $newRunspace.Open() 
+    $newRunspace.SessionStateProxy.SetVariable("jobs",$ScriptHT.Jobs) 
+    $Code = {
+        $JobCleanup = $true
+        do {    
+            foreach($runspace in $jobs) {            
+                if ($runspace.Runspace.isCompleted) {
+                    $runspace.powershell.EndInvoke($runspace.Runspace) | Out-Null
+                    $runspace.powershell.Runspace.Dispose()
+                    $runspace.powershell.Dispose()
+                    $runspace.Runspace = $null
+                    $runspace.powershell = $null               
+                } 
+            }
+            $temphash = $jobs.clone()
+            $temphash | Where-Object { $_.runspace -eq $Null } | ForEach-Object { $jobs.remove($_) }        
+            Start-Sleep -Seconds 1     
+        } while ($JobCleanup)
+    }
+    $Powershell = [powershell]::Create().AddScript($Code)
+    $Powershell.Runspace = $newRunspace
+    $PowerShell.BeginInvoke()
     # Local Download folders
     if (!(Test-Path "$($ScriptHT.DwlFolder)\2K")) { New-Item -Path "$($ScriptHT.DwlFolder)\2K" -ItemType Directory -Force }
     if (!(Test-Path "$($ScriptHT.DwlFolder)\4K")) { New-Item -Path "$($ScriptHT.DwlFolder)\4K" -ItemType Directory -Force }
@@ -888,13 +920,13 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $initialSessionState.Commands.Add($SessionStateFunction)
         }
         # Création du Runspace
-        $Runspace = [runspacefactory]::CreateRunspace($initialSessionState)
-        $Runspace.ApartmentState = "STA"
-        $Runspace.ThreadOptions	 = "ReuseThread"
-        $Runspace.Open()
-        $Runspace.SessionStateProxy.SetVariable("gui",$gui)
-        $Runspace.SessionStateProxy.SetVariable("ScriptHT",$ScriptHT)
-        $Runspace.SessionStateProxy.SetVariable("dtsHT",$dtsHT)
+        $newRunspace = [runspacefactory]::CreateRunspace($initialSessionState)
+        $newRunspace.ApartmentState = "STA"
+        $newRunspace.ThreadOptions	 = "ReuseThread"
+        $newRunspace.Open()
+        $newRunspace.SessionStateProxy.SetVariable("gui",$gui)
+        $newRunspace.SessionStateProxy.SetVariable("ScriptHT",$ScriptHT)
+        $newRunspace.SessionStateProxy.SetVariable("dtsHT",$dtsHT)
         # Code d'exécution du Runspace
         $Code = {
             # Récupération des skins locales
@@ -954,9 +986,14 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             })
         }
         # Invocation du Runspace
-        $PSinstance	 = [powershell]::Create().AddScript($Code)
-        $PSinstance.Runspace = $Runspace
-        $PSinstance.BeginInvoke()
+		$Powershell = [powershell]::Create().AddScript($Code)
+        $Powershell.Runspace = $newRunspace
+        [void]$ScriptHT.Jobs.Add((
+            [PSCustomObject]@{
+                PowerShell = $PowerShell
+                Runspace = $PowerShell.BeginInvoke()
+            }
+        ))
     })
     # Action sur le bouton Apply
     $gui.BT_Apply.add_Click({
@@ -969,13 +1006,13 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $initialSessionState.Commands.Add($SessionStateFunction)
         }
         # Création du Runspace
-        $Runspace = [runspacefactory]::CreateRunspace($initialSessionState)
-        $Runspace.ApartmentState = "STA"
-        $Runspace.ThreadOptions	 = "ReuseThread"
-        $Runspace.Open()
-        $Runspace.SessionStateProxy.SetVariable("gui",$gui)
-        $Runspace.SessionStateProxy.SetVariable("ScriptHT",$ScriptHT)
-        $Runspace.SessionStateProxy.SetVariable("dtsHT",$dtsHT)
+        $newRunspace = [runspacefactory]::CreateRunspace($initialSessionState)
+        $newRunspace.ApartmentState = "STA"
+        $newRunspace.ThreadOptions	 = "ReuseThread"
+        $newRunspace.Open()
+        $newRunspace.SessionStateProxy.SetVariable("gui",$gui)
+        $newRunspace.SessionStateProxy.SetVariable("ScriptHT",$ScriptHT)
+        $newRunspace.SessionStateProxy.SetVariable("dtsHT",$dtsHT)
         # Code d'exécution du Runspace
         $Code = {
             # Reset RTB & PB & GP & désactivation des bouton Apply,Scanner & Quit
@@ -1088,9 +1125,14 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             })
         }
         # Invocation du Runspace
-        $PSinstance	 = [powershell]::Create().AddScript($Code)
-        $PSinstance.Runspace = $Runspace
-        $PSinstance.BeginInvoke()
+		$Powershell = [powershell]::Create().AddScript($Code)
+        $Powershell.Runspace = $newRunspace
+        [void]$ScriptHT.Jobs.Add((
+            [PSCustomObject]@{
+                PowerShell = $PowerShell
+                Runspace = $PowerShell.BeginInvoke()
+            }
+        ))
     })
     # Action sur le bouton Quitter
     $gui.BT_Quit.add_Click({
