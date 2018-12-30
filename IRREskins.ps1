@@ -1268,8 +1268,40 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                 }
             }
             # Unzip NormalMaps
-            ## TODO
-
+            $ProgressMaxValue = $dtsHT.NMToUpdateStandAlone.Item.Count + $dtsHT.NMToUpdateSteam.Item.Count
+            $ProgressCurrent = 0
+            if (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0)) {
+                $gui.Window.Dispatcher.invoke("Normal",[action]{
+                    New_Line -Break -Paragraph "P_Execution"
+                    New_Line -Text "Installation des NormalMaps ..." -Bold -Paragraph "P_Execution"
+                    $gui.PB_Progress.Maximum = $ProgressMaxValue
+                    $gui.PB_Progress.Value = 0
+                })
+                foreach ($Installation in $ScriptHT.Installations) {
+                    $Database = "NMToUpdate$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $ZipFile = ("{0}\NM\{1}" -f $ScriptHT.DwlFolder,$row.ZipName)
+                        $SaveFolder = $row.ParentFolder + "\Original"
+                        $File2Save = $row.ParentFolder + "\" + $row.FileName
+                        # Sauvegarde de la NM Original si besoin
+                        if ($row.OriginalSaved -eq $false) {
+                            New-Item -Path $SaveFolder -ItemType Directory -Force
+                            Copy-Item $File2Save -Destination $SaveFolder
+                        }
+                        $ProgressCurrent++
+                        $gui.Window.Dispatcher.invoke("Normal",[action]{
+                            New_Line -Text "Installation $Installation : $($row.FileName) ..." -Paragraph "P_Execution"
+                        })
+                        $testUnzip = Unzip_File -ZipFile $ZipFile -DestFolder $row.ParentFolder
+                        $gui.Window.Dispatcher.invoke("Normal",[action]{
+                            if ($testUnzip -eq $false) {
+                                New_Line -Text "Erreur lors de l'installation de la NormalMap" -Paragraph "P_Execution" -Foreground "Red"
+                            }
+                            $gui.PB_Progress.Value = $ProgressCurrent
+                        })
+                    }
+                }
+            }
             # Suppression des 7-Zip téléchargés
             if ($ScriptHT.Config.Pref_KeepFiles -eq $false) {
                 $gui.Window.Dispatcher.invoke("Normal",[action]{
