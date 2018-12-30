@@ -1316,8 +1316,11 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                         Remove-Item -Path $FileToDelete -Force
                     }
                     # NormalMaps
-                    ## TODO
-                    
+                    $Database = "NMToUpdate$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $FileToDelete = $ScriptHT.DwlFolder + "\NM\" + $row.ZipName
+                        Remove-Item -Path $FileToDelete -Force
+                    }
                 }
             }
             # Réactivation du bouton Scan
