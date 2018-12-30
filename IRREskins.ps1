@@ -745,6 +745,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             if (($dvLocalNM.Quality -eq "2K") -or (($dvLocalNM.Quality -eq "4K") -and ($dvLocalNM.FileDate -lt $rowNM.FileDate))) {
                 $row = $dtsHT.$2UpdateDatabase.NewRow()
                 $row["FileUrl"] = $rowNM.FileUrl
+                $row["ZipName"] = $rowNM.FileName
                 $row["ParentFolder"] = $dvLocalNM.ParentFolder
                 $row["FileName"] = $dvLocalNM.FileName
                 $row["FileSize"] = $rowNM.FileSize
@@ -990,7 +991,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         $localSkinsCols = @("Tag","FilePath","FileName","FileDate","PlaneType","SkinCollection","Quality")
         $localNMCols = @("FilePath","ParentFolder","FileName","FileDate","PlaneType","Quality","OriginalSaved")
         $Skins2UpdateCols = @("Tag","FileUrl","FileName","FileSize","FileDate","PlaneType","SkinCollection","Quality")
-        $NM2UpdateCols = @("FileUrl","ParentFolder","FileName","FileSize","FileDate","PlaneType","OriginalSaved")
+        $NM2UpdateCols = @("FileUrl","ZipName","ParentFolder","FileName","FileSize","FileDate","PlaneType","OriginalSaved")
         $NMOriginalCols = @("ParentFolder","FileName","PlaneType")
         # DataTables HT
         ## OnlineSkins
@@ -1168,7 +1169,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     $SkinsDeleted = $true
                 }
             }
-            # Téléchargement
+            # Téléchargement Skins Collections
             $ProgressMaxValue = $dtsHT.SkinsToUpdateStandAlone.Item.Count + $dtsHT.SkinsToUpdateSteam.Item.Count
             $ProgressCurrent = 0
             if (($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0)) {
@@ -1200,8 +1201,43 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                         }   
                     }
                 }
+                $SkinsDownloaded = $true
             }
-            # Unzip
+            # Téléchargement NormalMaps
+            $ProgressMaxValue = $dtsHT.NMToUpdateStandAlone.Item.Count + $dtsHT.NMToUpdateSteam.Item.Count
+            $ProgressCurrent = 0
+            if (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0)) {
+                $gui.Window.Dispatcher.invoke("Normal",[action]{
+                    if ($SkinsDownloaded) { New_Line -Break -Paragraph "P_Execution" }
+                    New_Line -Text "Téléchargement des NormalMaps ..." -Bold -Paragraph "P_Execution"
+                    $gui.PB_Progress.Maximum = $ProgressMaxValue
+                    $gui.PB_Progress.Value = 0
+                })
+                foreach ($Installation in $ScriptHT.Installations) {
+                    $Database = "NMToUpdate$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $destFile = $ScriptHT.DwlFolder + "\NM\" + $row.ZipName
+                        $ProgressCurrent++
+                        if (Test-Path $destFile) {
+                            $gui.Window.Dispatcher.invoke("Normal",[action]{
+                                New_Line -Text "Fichier déjà téléchargé : $($row.ZipName)" -Paragraph "P_Execution"
+                                $gui.PB_Progress.Value = $ProgressCurrent
+                            })
+                        }
+                        else {
+                            $gui.Window.Dispatcher.invoke("Normal",[action]{
+                                New_Line -Text "Téléchargement en cours : $($row.ZipName) ($($row.FileSize)) ..." -Paragraph "P_Execution"
+                            })
+                            Download_Files -Url $row.FileUrl -TargetFile $destFile
+                            $gui.Window.Dispatcher.invoke("Normal",[action]{
+                                $gui.PB_Progress.Value = $ProgressCurrent
+                            })
+                        }   
+                    }
+                }
+                $NormalMapsDownloaded = $true
+            }
+            # Unzip Skins Collections
             $ProgressMaxValue = $dtsHT.SkinsToUpdateStandAlone.Item.Count + $dtsHT.SkinsToUpdateSteam.Item.Count
             $ProgressCurrent = 0
             if (($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0)) {
@@ -1231,6 +1267,9 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     }
                 }
             }
+            # Unzip NormalMaps
+            ## TODO
+
             # Suppression des 7-Zip téléchargés
             if ($ScriptHT.Config.Pref_KeepFiles -eq $false) {
                 $gui.Window.Dispatcher.invoke("Normal",[action]{
@@ -1238,11 +1277,15 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     New_Line -Text "Suppression des fichiers téléchargés ..." -Bold -Paragraph "P_Execution"
                 })
                 foreach ($Installation in $ScriptHT.Installations) {
+                    # Skins
                     $Database = "SkinsToUpdate$Installation"
                     foreach ($row in $dtsHT.$Database) {
                         $FileToDelete = $ScriptHT.DwlFolder + "\" + $row.Quality + "\" + $row.FileName
                         Remove-Item -Path $FileToDelete -Force
                     }
+                    # NormalMaps
+                    ## TODO
+                    
                 }
             }
             # Réactivation du bouton Scan
