@@ -197,6 +197,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         $ToDeleteDatabase = "ToDelete$Database"
         $SkinsToUpdateDatabase = "SkinsToUpdate$Database"
         $NMToUpdateDatabase = "NMToUpdate$Database"
+        $LocalOriginalDatabase = "NMOriginal$Database"
         New_Line -Text $Title -Bold -Paragraph "P_Execution"
         New_Line -Break -Paragraph "P_Execution"
         if ($ScriptHT.$ToDeleteDatabase -gt 0) {
@@ -207,7 +208,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             }
             New_Line -Break -Paragraph "P_Execution"
         }
-        New_Line -Text "Collections à installer / Mettre à jour:" -Bold -Foreground "Green" -Paragraph "P_Execution"
+        New_Line -Text "Collections à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution"
         New_Line -Break -Paragraph "P_Execution"
         if ($dtsHT.$SkinsToUpdateDatabase.Item.Count -eq 1) {
             $FileDate = $dtsHT.$SkinsToUpdateDatabase.FileDate
@@ -233,39 +234,55 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         }
         else {
             New_Line -Text "   \o/ Collections à jour" -Foreground "Green" -Paragraph "P_Execution"
-            $gui.GP_Paths.IsEnabled = $true
-            $gui.GP_Preferences.IsEnabled = $true
-            $gui.BT_Scan.IsEnabled = $true
-            $gui.BT_Quit.IsEnabled = $true
         }
-        New_Line -Break -Paragraph "P_Execution"
-        New_Line -Text "NormalMaps à installer / Mettre à jour:" -Bold -Foreground "Green" -Paragraph "P_Execution"
-        New_Line -Break -Paragraph "P_Execution"
-        if ($dtsHT.$NMToUpdateDatabase.Item.Count -eq 1) {
-            $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate
-            $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-            $Collection = ("{0}`t{1}`t{2}"-f    $dtsHT.$NMToUpdateDatabase.PlaneType,
-                                                $dtsHT.$NMToUpdateDatabase.FileSize,
-                                                $FileDate)
-            New_Line -Text $Collection -Paragraph "P_Execution"
-        }
-        elseif ($dtsHT.$NMToUpdateDatabase.Item.Count -gt 1) {
-            for ($i = 0; $i -lt $dtsHT.$NMToUpdateDatabase.Item.Count; $i++) {
-                $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate[$i]
+        if ($ScriptHT.Config.Pref_Quality -eq "4K") {
+            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Text "NormalMaps à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution"
+            New_Line -Break -Paragraph "P_Execution"
+            if ($dtsHT.$NMToUpdateDatabase.Item.Count -eq 1) {
+                $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate
                 $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-                $Collection = ("{0}`t{1}`t{2}"-f    $dtsHT.$NMToUpdateDatabase.PlaneType[$i],
-                                                    $dtsHT.$NMToUpdateDatabase.FileSize[$i],
+                $Collection = ("{0}`t{1}`t{2}"-f    $dtsHT.$NMToUpdateDatabase.PlaneType,
+                                                    $dtsHT.$NMToUpdateDatabase.FileSize,
                                                     $FileDate)
                 New_Line -Text $Collection -Paragraph "P_Execution"
             }
+            elseif ($dtsHT.$NMToUpdateDatabase.Item.Count -gt 1) {
+                for ($i = 0; $i -lt $dtsHT.$NMToUpdateDatabase.Item.Count; $i++) {
+                    $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate[$i]
+                    $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+                    $Collection = ("{0}`t{1}`t{2}"-f    $dtsHT.$NMToUpdateDatabase.PlaneType[$i],
+                                                        $dtsHT.$NMToUpdateDatabase.FileSize[$i],
+                                                        $FileDate)
+                    New_Line -Text $Collection -Paragraph "P_Execution"
+                }
+            }
+            else {
+                New_Line -Text "   \o/ NormalMaps à jour" -Foreground "Green" -Paragraph "P_Execution"
+            }
         }
-        else {
-            New_Line -Text "   \o/ NormalMaps à jour" -Foreground "Green" -Paragraph "P_Execution"
-            $gui.GP_Paths.IsEnabled = $true
-            $gui.GP_Preferences.IsEnabled = $true
-            $gui.BT_Scan.IsEnabled = $true
-            $gui.BT_Quit.IsEnabled = $true
+        if (($ScriptHT.Config.Pref_Quality -eq "2K") -and ($dtsHT.$LocalOriginalDatabase.Item.Count -gt 0)) {
+            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Text "NormalMaps Originaux à rétablir :" -Bold -Foreground "Green" -Paragraph "P_Execution"
+            New_Line -Break -Paragraph "P_Execution"
+            if ($dtsHT.$LocalOriginalDatabase.Item.Count -eq 1) {
+                $Collection = $dtsHT.$LocalOriginalDatabase.PlaneType
+                New_Line -Text $Collection -Paragraph "P_Execution"
+            }
+            elseif ($dtsHT.$LocalOriginalDatabase.Item.Count -gt 1) {
+                for ($i = 0; $i -lt $dtsHT.$LocalOriginalDatabase.Item.Count; $i++) {
+                    $Collection = $dtsHT.$LocalOriginalDatabase.PlaneType[$i]
+                    New_Line -Text $Collection -Paragraph "P_Execution"
+                }
+            }
+            else {
+                New_Line -Text "   \o/ NormalMaps Originaux à jour" -Foreground "Green" -Paragraph "P_Execution"
+            }
         }
+        $gui.GP_Paths.IsEnabled = $true
+        $gui.GP_Preferences.IsEnabled = $true
+        $gui.BT_Scan.IsEnabled = $true
+        $gui.BT_Quit.IsEnabled = $true
     }
     # SCRIPT - Mise à jour du Script
     function Maj_Script ($Version,$InstallFile) {
