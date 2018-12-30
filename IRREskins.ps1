@@ -196,47 +196,93 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         $Title = "installation $Database".ToUpper()
         $ToDeleteDatabase = "ToDelete$Database"
         $SkinsToUpdateDatabase = "SkinsToUpdate$Database"
-        New_Line -Text $Title -Bold -Paragraph "P_Execution"
-        New_Line -Break -Paragraph "P_Execution"
+        $NMToUpdateDatabase = "NMToUpdate$Database"
+        $LocalOriginalDatabase = "NMOriginal$Database"
+        New_Line -Text $Title -Bold -Paragraph "P_Execution" -ScrollOff
+        New_Line -Break -Paragraph "P_Execution" -ScrollOff
         if ($ScriptHT.$ToDeleteDatabase -gt 0) {
-            New_Line -Text "Skins obsolètes à supprimer :" -Bold -Foreground "Red" -Paragraph "P_Execution"
-            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Text "Skins obsolètes à supprimer :" -Bold -Foreground "Red" -Paragraph "P_Execution" -ScrollOff
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
             for ($i = 0; $i -lt $ScriptHT.$ToDeleteDatabase.Count; $i++) {
-                New_Line -Text "$($ScriptHT.$ToDeleteDatabase[$i])" -Paragraph "P_Execution"
+                New_Line -Text "$($ScriptHT.$ToDeleteDatabase[$i])" -Paragraph "P_Execution" -ScrollOff
             }
-            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
         }
-        New_Line -Text "Collections à installer / Mettre à jour:" -Bold -Foreground "Green" -Paragraph "P_Execution"
-        New_Line -Break -Paragraph "P_Execution"
+        New_Line -Text "Collections à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+        New_Line -Break -Paragraph "P_Execution" -ScrollOff
         if ($dtsHT.$SkinsToUpdateDatabase.Item.Count -eq 1) {
             $FileDate = $dtsHT.$SkinsToUpdateDatabase.FileDate
-            $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-            $Collection = ("{0}`t{1}`tQualité {2} - {3}`t{4}"-f    $dtsHT.$SkinsToUpdateDatabase.Tag,
-                                                $dtsHT.$SkinsToUpdateDatabase.SkinCollection,
-                                                $dtsHT.$SkinsToUpdateDatabase.Quality,
-                                                $dtsHT.$SkinsToUpdateDatabase.FileSize,
-                                                $FileDate)
-            New_Line -Text $Collection -Paragraph "P_Execution"
+            $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+            $Collection = ("{0}  {1}  Qualité {2} - {3}  {4}"-f     $dtsHT.$SkinsToUpdateDatabase.Tag,
+                                                                    $dtsHT.$SkinsToUpdateDatabase.SkinCollection,
+                                                                    $dtsHT.$SkinsToUpdateDatabase.Quality,
+                                                                    $dtsHT.$SkinsToUpdateDatabase.FileSize,
+                                                                    $FileDate)
+            New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
         }
         elseif ($dtsHT.$SkinsToUpdateDatabase.Item.Count -gt 1) {
             for ($i = 0; $i -lt $dtsHT.$SkinsToUpdateDatabase.Item.Count; $i++) {
                 $FileDate = $dtsHT.$SkinsToUpdateDatabase.FileDate[$i]
-                $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-                $Collection = ("{0}`t{1}`tQualité {2} - {3}`t{4}"-f    $dtsHT.$SkinsToUpdateDatabase.Tag[$i],
-                                                    $dtsHT.$SkinsToUpdateDatabase.SkinCollection[$i],
-                                                    $dtsHT.$SkinsToUpdateDatabase.Quality[$i],
-                                                    $dtsHT.$SkinsToUpdateDatabase.FileSize[$i],
-                                                    $FileDate)
-                New_Line -Text $Collection -Paragraph "P_Execution"
+                $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+                $Collection = ("{0}  {1}  Qualité {2} - {3}  {4}"-f     $dtsHT.$SkinsToUpdateDatabase.Tag[$i],
+                                                                        $dtsHT.$SkinsToUpdateDatabase.SkinCollection[$i],
+                                                                        $dtsHT.$SkinsToUpdateDatabase.Quality[$i],
+                                                                        $dtsHT.$SkinsToUpdateDatabase.FileSize[$i],
+                                                                        $FileDate)
+                New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
             }
         }
         else {
-            New_Line -Text "   \o/ Collections à jour" -Foreground "Green" -Paragraph "P_Execution"
-            $gui.GP_Paths.IsEnabled = $true
-            $gui.GP_Preferences.IsEnabled = $true
-            $gui.BT_Scan.IsEnabled = $true
-            $gui.BT_Quit.IsEnabled = $true
+            New_Line -Text "   \o/ Collections à jour" -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
         }
+        if ($ScriptHT.Config.Pref_Quality -eq "4K") {
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
+            New_Line -Text "NormalMaps à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
+            if ($dtsHT.$NMToUpdateDatabase.Item.Count -eq 1) {
+                $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate
+                $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+                $Collection = ("{0}  Qualité 4K - {1}  {2}"-f   $dtsHT.$NMToUpdateDatabase.PlaneType,
+                                                                $dtsHT.$NMToUpdateDatabase.FileSize,
+                                                                $FileDate)
+                New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
+            }
+            elseif ($dtsHT.$NMToUpdateDatabase.Item.Count -gt 1) {
+                for ($i = 0; $i -lt $dtsHT.$NMToUpdateDatabase.Item.Count; $i++) {
+                    $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate[$i]
+                    $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+                    $Collection = ("{0}  Qualité 4K - {1}  {2}"-f   $dtsHT.$NMToUpdateDatabase.PlaneType[$i],
+                                                                    $dtsHT.$NMToUpdateDatabase.FileSize[$i],
+                                                                    $FileDate)
+                    New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
+                }
+            }
+            else {
+                New_Line -Text "   \o/ NormalMaps à jour" -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+            }
+        }
+        if (($ScriptHT.Config.Pref_Quality -eq "2K") -and ($dtsHT.$LocalOriginalDatabase.Item.Count -gt 0)) {
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
+            New_Line -Text "NormalMaps Originaux à rétablir :" -Bold -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
+            if ($dtsHT.$LocalOriginalDatabase.Item.Count -eq 1) {
+                $Collection = ("{0}  Qualité 2K  Original"-f  $dtsHT.$LocalOriginalDatabase.PlaneType)
+                New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
+            }
+            elseif ($dtsHT.$LocalOriginalDatabase.Item.Count -gt 1) {
+                for ($i = 0; $i -lt $dtsHT.$LocalOriginalDatabase.Item.Count; $i++) {
+                    $Collection = ("{0}  Qualité 2K  Original"-f  $dtsHT.$LocalOriginalDatabase.PlaneType[$i])
+                    New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
+                }
+            }
+            else {
+                New_Line -Text "   \o/ NormalMaps Originaux à jour" -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+            }
+        }
+        $gui.GP_Paths.IsEnabled = $true
+        $gui.GP_Preferences.IsEnabled = $true
+        $gui.BT_Scan.IsEnabled = $true
+        $gui.BT_Quit.IsEnabled = $true
     }
     # SCRIPT - Mise à jour du Script
     function Maj_Script ($Version,$InstallFile) {
@@ -508,6 +554,39 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $dtsHT.$LocalDatabase.Rows.Add($row)
         }
     }
+    # LOGIC - Scan des NormalMaps locales
+    function Scan_LocalNM ($LocalPath,$Database) {
+        $LocalDatabase = "Local" + $Database + "NM"
+        $LocalOriginalDatabase = "NMOriginal$Database"
+        $LocalPath = $LocalPath.Replace("\skins","\planes")
+        Get-ChildItem -Path "$LocalPath\*\*\*_B.dds" -File | ForEach-Object {
+            $ParentFolder = [System.IO.Path]::GetDirectoryName($_)
+            $FileName = $_.Name
+            $PlaneType = $_.Name.Split('_')[0]
+            $testPathOriginal = "$ParentFolder\Original\$FileName"
+            # Sauvegarde des Originaux
+            if (Test-Path $testPathOriginal) {
+                $OriginalSaved = $true
+                $rowOri = $dtsHT.$LocalOriginalDatabase.NewRow()
+                $rowOri["ParentFolder"] = $ParentFolder
+                $rowOri["FileName"] = $FileName
+                $rowOri["PlaneType"] = $PlaneType
+                $dtsHT.$LocalOriginalDatabase.Rows.Add($rowOri)
+            }
+            else {
+                $OriginalSaved = $false
+            }
+            $row = $dtsHT.$LocalDatabase.NewRow()
+            $row["FilePath"] = $_.FullName
+            $row["ParentFolder"] = $ParentFolder
+            $row["FileName"] = $FileName
+            $row["FileDate"] = $_.LastWriteTime.ToString("yyyyMMdd")
+            $row["PlaneType"] = $PlaneType
+            $row["Quality"] = if ($_.Length -gt 6000000) { "4K" } else { "2K" }
+            $row["OriginalSaved"] = $OriginalSaved
+            $dtsHT.$LocalDatabase.Rows.Add($row)
+        }
+    }
     # LOGIC - Scan des skins onlines
     function Scan_OnlineSkins ($baseUrl,$Tag,$Quality) {
         $URI = "$baseUrl/?dir=$Tag/$Quality"
@@ -529,6 +608,26 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $row["SkinCollection"] = ($fileName.Split('_')[0..3] -join ("_"))
             $row["Quality"] = $Quality
             $dtsHT.OnlineSkins.Rows.Add($row)
+        }
+    }
+    # LOGIC - Scan des NormalMaps onlines
+    function Scan_OnlineNM ($baseUrl) {
+        $URI = "$baseUrl/?dir=NormalMaps"
+        $HTML = Invoke-WebRequest -Uri $URI
+        $fileNames = New-Object System.Collections.Generic.List[System.Object]
+        $fileSizes = New-Object System.Collections.Generic.List[System.Object]
+        ($HTML.ParsedHtml.getElementsByTagName('span') | Where-Object {$_.className -like 'file-name *'}).innerText | ForEach-Object { $fileNames.Add($_) }
+        ($HTML.ParsedHtml.getElementsByTagName('span') | Where-Object {$_.className -like 'file-size *'}).innerText | ForEach-Object { $fileSizes.Add($_) }
+        for ($i = 1; $i -lt $fileNames.count; $i++) {
+            $fileName = $fileNames[$i].Trim()
+            $fileSize = $fileSizes[$i].Trim()
+            $row = $dtsHT.OnlineNM.NewRow()
+            $row["FileUrl"] = ("{0}/NormalMaps/{1}" -f $baseUrl,$fileName)
+            $row["FileName"] = $fileName
+            $row["FileSize"] = $fileSize
+            $row["FileDate"] = $fileName.Split('_')[1].Substring(0,$fileName.Split('_')[1].Length-3)
+            $row["PlaneType"] = $fileName.Split('_')[0]
+            $dtsHT.OnlineNM.Rows.Add($row)
         }
     }
     # LOGIC - Comparaison des SkinCollections Locales / Onlines
@@ -634,6 +733,29 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $dtsHT.$DatabaseToUpdate.Rows.Add($row)
         }
     }
+    # LOGIC - Comparaison des NormalMaps Locales / Onlines
+    function Compare_NormalMaps ($Database) {
+        $LocalDatabase = "Local" + $Database + "NM"
+        $2UpdateDatabase = "NMToUpdate$Database"
+        $dvLocalNM = New-Object System.Data.DataView($dtsHT.$LocalDatabase)
+        foreach ($rowNM in $dtsHT.OnlineNM) {
+            # On cherche la correspondance
+            $dvLocalNM.RowFilter = "PlaneType = '$($rowNM.PlaneType)'"
+            # Si on a pas la NormalMap locale en 4K ou date antérieur, on l'ajoute au download
+            if (($dvLocalNM.Quality -eq "2K") -or (($dvLocalNM.Quality -eq "4K") -and ($dvLocalNM.FileDate -lt $rowNM.FileDate))) {
+                $row = $dtsHT.$2UpdateDatabase.NewRow()
+                $row["FileUrl"] = $rowNM.FileUrl
+                $row["ZipName"] = $rowNM.FileName
+                $row["ParentFolder"] = $dvLocalNM.ParentFolder
+                $row["FileName"] = $dvLocalNM.FileName
+                $row["FileSize"] = $rowNM.FileSize
+                $row["FileDate"] = $rowNM.FileDate
+                $row["PlaneType"] = $dvLocalNM.PlaneType
+                $row["OriginalSaved"] = $dvLocalNM.OriginalSaved
+                $dtsHT.$2UpdateDatabase.Rows.Add($row)
+            }
+        }
+    }
     # LOGIC - Vérification des skins à delete
     function Check_ToDelete ($baseUrl,$Database,$Tag) {
         $LocalDatabase = "Local$Database"
@@ -657,7 +779,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
 #region Initialisations
 
     # Base Script Config
-    $version        = 1.8
+    $version        = 2.0
     $baseUrl        = "https://www.lesirreductibles.com/irreskins"
     $fileConf       = "config.json"
 
@@ -720,6 +842,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     # Local Download folders
     if (!(Test-Path "$($ScriptHT.DwlFolder)\2K")) { New-Item -Path "$($ScriptHT.DwlFolder)\2K" -ItemType Directory -Force }
     if (!(Test-Path "$($ScriptHT.DwlFolder)\4K")) { New-Item -Path "$($ScriptHT.DwlFolder)\4K" -ItemType Directory -Force }
+    if (!(Test-Path "$($ScriptHT.DwlFolder)\NM")) { New-Item -Path "$($ScriptHT.DwlFolder)\NM" -ItemType Directory -Force }
     # Si une configuration locale existe déjà on la récupère en interne
     if (Test-Path $ScriptHT.ConfigFile) {
         $LocalConfig = (Get-Content $ScriptHT.ConfigFile) -join "`n" | ConvertFrom-Json
@@ -862,57 +985,53 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     })
     # Action sur le bouton de Scan
     $gui.BT_Scan.add_Click({
+        # Columns
+        $onlineSkinsCols = @("Tag","FileUrl","FileName","FileSize","FileDate","PlaneType","SkinCollection","Quality")
+        $onlineNMCols = @("FileUrl","FileName","FileSize","FileDate","PlaneType")
+        $localSkinsCols = @("Tag","FilePath","FileName","FileDate","PlaneType","SkinCollection","Quality")
+        $localNMCols = @("FilePath","ParentFolder","FileName","FileDate","PlaneType","Quality","OriginalSaved")
+        $Skins2UpdateCols = @("Tag","FileUrl","FileName","FileSize","FileDate","PlaneType","SkinCollection","Quality")
+        $NM2UpdateCols = @("FileUrl","ZipName","ParentFolder","FileName","FileSize","FileDate","PlaneType","OriginalSaved")
+        $NMOriginalCols = @("ParentFolder","FileName","PlaneType")
         # DataTables HT
         ## OnlineSkins
         $dtsHT.OnlineSkins = New-Object System.Data.Datatable
-        [Void]$dtsHT.OnlineSkins.Columns.Add("Tag")
-        [Void]$dtsHT.OnlineSkins.Columns.Add("FileUrl")
-        [Void]$dtsHT.OnlineSkins.Columns.Add("FileName")
-        [Void]$dtsHT.OnlineSkins.Columns.Add("FileSize")
-        [Void]$dtsHT.OnlineSkins.Columns.Add("FileDate")
-        [Void]$dtsHT.OnlineSkins.Columns.Add("PlaneType")
-        [Void]$dtsHT.OnlineSkins.Columns.Add("SkinCollection")
-        [Void]$dtsHT.OnlineSkins.Columns.Add("Quality")
+        foreach ($col in $onlineSkinsCols) { [Void]$dtsHT.OnlineSkins.Columns.Add($col) }
+        ## OnlineNM
+        $dtsHT.OnlineNM = New-Object System.Data.Datatable
+        foreach ($col in $onlineNMCols) { [Void]$dtsHT.OnlineNM.Columns.Add($col) }
         ## LocalStandAlone
         $dtsHT.LocalStandAlone = New-Object System.Data.Datatable
-        [Void]$dtsHT.LocalStandAlone.Columns.Add("Tag")
-        [Void]$dtsHT.LocalStandAlone.Columns.Add("FilePath")
-        [Void]$dtsHT.LocalStandAlone.Columns.Add("FileName")
-        [Void]$dtsHT.LocalStandAlone.Columns.Add("FileDate")
-        [Void]$dtsHT.LocalStandAlone.Columns.Add("PlaneType")
-        [Void]$dtsHT.LocalStandAlone.Columns.Add("SkinCollection")
-        [Void]$dtsHT.LocalStandAlone.Columns.Add("Quality")
-        ## LocalSteam
-        $dtsHT.LocalSteam = New-Object System.Data.Datatable
-        [Void]$dtsHT.LocalSteam.Columns.Add("Tag")
-        [Void]$dtsHT.LocalSteam.Columns.Add("FilePath")
-        [Void]$dtsHT.LocalSteam.Columns.Add("FileName")
-        [Void]$dtsHT.LocalSteam.Columns.Add("FileDate")
-        [Void]$dtsHT.LocalSteam.Columns.Add("PlaneType")
-        [Void]$dtsHT.LocalSteam.Columns.Add("SkinCollection")
-        [Void]$dtsHT.LocalSteam.Columns.Add("Quality")
+        foreach ($col in $localSkinsCols) { [Void]$dtsHT.LocalStandAlone.Columns.Add($col) }
+        ## LocalStandAloneNM
+        $dtsHT.LocalStandAloneNM = New-Object System.Data.Datatable
+        foreach ($col in $localNMCols) { [Void]$dtsHT.LocalStandAloneNM.Columns.Add($col) }
         ## SkinsToUpdateStandAlone
         $dtsHT.SkinsToUpdateStandAlone = New-Object System.Data.Datatable
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("Tag")
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("FileUrl")
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("FileName")
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("FileSize")
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("FileDate")
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("PlaneType")
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("SkinCollection")
-        [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add("Quality")
+        foreach ($col in $Skins2UpdateCols) { [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add($col) }
+        ## NMToUpdateStandAlone
+        $dtsHT.NMToUpdateStandAlone = New-Object System.Data.Datatable
+        foreach ($col in $NM2UpdateCols) { [Void]$dtsHT.NMToUpdateStandAlone.Columns.Add($col) }
+        ## NMOriginalStandAlone
+        $dtsHT.NMOriginalStandAlone = New-Object System.Data.Datatable
+        foreach ($col in $NMOriginalCols) { [Void]$dtsHT.NMOriginalStandAlone.Columns.Add($col) }
+        ## LocalSteam
+        $dtsHT.LocalSteam = New-Object System.Data.Datatable
+        foreach ($col in $localSkinsCols) { [Void]$dtsHT.LocalSteam.Columns.Add($col) }
+        ## LocalSteamNM
+        $dtsHT.LocalSteamNM = New-Object System.Data.Datatable
+        foreach ($col in $localNMCols) { [Void]$dtsHT.LocalSteamNM.Columns.Add($col) }
         ## SkinsToUpdateSteam
         $dtsHT.SkinsToUpdateSteam = New-Object System.Data.Datatable
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("Tag")
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("FileUrl")
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("FileName")
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("FileSize")
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("FileDate")
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("PlaneType")
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("SkinCollection")
-        [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add("Quality")
+        foreach ($col in $Skins2UpdateCols) { [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add($col) }
+        ## NMToUpdateSteam
+        $dtsHT.NMToUpdateSteam = New-Object System.Data.Datatable
+        foreach ($col in $NM2UpdateCols) { [Void]$dtsHT.NMToUpdateSteam.Columns.Add($col) }
+        ## NMOriginalSteam
+        $dtsHT.NMOriginalSteam = New-Object System.Data.Datatable
+        foreach ($col in $NMOriginalCols) { [Void]$dtsHT.NMOriginalSteam.Columns.Add($col) }
         # Ajoute les fonctions au Runspace
-        $FunctionList = @("Scan_OnlineSkins","Scan_LocalSkins","Check_ToDelete","Compare_Collections","Display_ScanResults","New_Line")
+        $FunctionList = @("Scan_OnlineSkins","Scan_OnlineNM","Scan_LocalSkins","Scan_LocalNM","Check_ToDelete","Compare_Collections","Compare_NormalMaps","Display_ScanResults","New_Line")
         $initialSessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
         foreach ($Function in $FunctionList) {
             $FunctionDefinition = Get-Content Function:\$Function
@@ -929,7 +1048,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         $newRunspace.SessionStateProxy.SetVariable("dtsHT",$dtsHT)
         # Code d'exécution du Runspace
         $Code = {
-            # Récupération des skins locales
+            # Récupération des skins & NormalMaps locales
             $gui.Window.Dispatcher.invoke("Normal",[action]{
                 $gui.BT_Scan.IsEnabled = $false
                 $gui.BT_Apply.IsEnabled = $false
@@ -939,14 +1058,21 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                 $gui.PB_Progress.Value = 0
                 New_Line -Text "Scan des skins locales ..." -Paragraph "P_Execution"
             })
-            if ($ScriptHT.Config.Pref_StandAlone) { Scan_LocalSkins -localPath $ScriptHT.Config.StandAlonePath -Database "StandAlone" -Tags $ScriptHT.Tags }
-            if ($ScriptHT.Config.Pref_Steam) { Scan_LocalSkins -localPath $ScriptHT.Config.SteamPath -Database "Steam" -Tags $ScriptHT.Tags }
-            # Récupération de la liste des skins Online
+            if ($ScriptHT.Config.Pref_StandAlone) {
+                Scan_LocalSkins -localPath $ScriptHT.Config.StandAlonePath -Database "StandAlone" -Tags $ScriptHT.Tags
+                Scan_LocalNM -localPath $ScriptHT.Config.StandAlonePath -Database "StandAlone"
+            }
+            if ($ScriptHT.Config.Pref_Steam) {
+                Scan_LocalSkins -localPath $ScriptHT.Config.SteamPath -Database "Steam" -Tags $ScriptHT.Tags
+                Scan_LocalNM -localPath $ScriptHT.Config.SteamPath -Database "Steam"
+            }
+            # Récupération de la liste des skins & NormalMaps Online
             $gui.Window.Dispatcher.invoke("Normal",[action]{ New_Line -Text "Scan des skins onlines ..." -Paragraph "P_Execution" })
             foreach ($Tag in $ScriptHT.Tags) {
                 Scan_OnlineSkins $ScriptHT.baseUrl $Tag "2K"
                 Scan_OnlineSkins $ScriptHT.baseUrl $Tag "4K"
             }
+            Scan_OnlineNM $ScriptHT.baseUrl
             # Récupération des skins à delete
             $gui.Window.Dispatcher.invoke("Normal",[action]{ New_Line -Text "Récupération de la liste des skins obsolètes ..." -Paragraph "P_Execution" })
             $ScriptHT.ToDeleteStandAlone = @()
@@ -957,8 +1083,14 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             }
             # Comparaisons, skins à mettre à jour
             $gui.Window.Dispatcher.invoke("Normal",[action]{ New_Line -Text "Analyse des données ..." -Paragraph "P_Execution" })
-            if ($ScriptHT.Config.Pref_StandAlone) { Compare_Collections -QualityPref $ScriptHT.Config.Pref_Quality -Database "StandAlone" }
-            if ($ScriptHT.Config.Pref_Steam) { Compare_Collections -QualityPref $ScriptHT.Config.Pref_Quality -Database "Steam" }
+            if ($ScriptHT.Config.Pref_StandAlone) {
+                Compare_Collections -QualityPref $ScriptHT.Config.Pref_Quality -Database "StandAlone"
+                if ($ScriptHT.Config.Pref_Quality -eq "4K") { Compare_NormalMaps -Database "StandAlone" }
+            }
+            if ($ScriptHT.Config.Pref_Steam) {
+                Compare_Collections -QualityPref $ScriptHT.Config.Pref_Quality -Database "Steam"
+                if ($ScriptHT.Config.Pref_Quality -eq "4K") { Compare_NormalMaps -Database "Steam" }
+            }
             # Reset RTB
             $gui.Window.Dispatcher.invoke("Normal",[action]{ $gui.P_Execution.Inlines.Clear() })
             # Résultats StandAlone
@@ -971,7 +1103,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             # Résultats Steam
             if ($ScriptHT.Config.Pref_Steam) {
                 $gui.Window.Dispatcher.invoke("Normal",[action]{
-                    if ($StandAloneDisplay) { New_Line -Break -Paragraph "P_Execution" }
+                    if ($StandAloneDisplay) { New_Line -Break -Paragraph "P_Execution" -ScrollOff }
                     Display_ScanResults -Database "Steam"
                 })
             }
@@ -980,7 +1112,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                 $gui.BT_Scan.IsEnabled = $true
                 $gui.GP_Paths.IsEnabled = $true
                 $gui.GP_Preferences.IsEnabled = $true
-                if (($ScriptHT.ToDeleteStandAlone -gt 0) -or ($ScriptHT.ToDeleteSteam -gt 0) -or ($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0)) {
+                if (($ScriptHT.ToDeleteStandAlone -gt 0) -or ($ScriptHT.ToDeleteSteam -gt 0) -or ($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0) -or (($ScriptHT.Config.Pref_Quality -eq "4K") -and (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0))) -or (($ScriptHT.Config.Pref_Quality -eq "2K") -and (($dtsHT.NMOriginalStandAlone.Item.Count -gt 0) -or ($dtsHT.NMOriginalSteam.Item.Count -gt 0))) ) {
                         $gui.BT_Apply.IsEnabled = $true
                 }
             })
@@ -1037,7 +1169,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     $SkinsDeleted = $true
                 }
             }
-            # Téléchargement
+            # Téléchargement Skins Collections
             $ProgressMaxValue = $dtsHT.SkinsToUpdateStandAlone.Item.Count + $dtsHT.SkinsToUpdateSteam.Item.Count
             $ProgressCurrent = 0
             if (($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0)) {
@@ -1069,8 +1201,42 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                         }   
                     }
                 }
+                $SkinsDownloaded = $true
             }
-            # Unzip
+            # Téléchargement NormalMaps si 4K
+            $ProgressMaxValue = $dtsHT.NMToUpdateStandAlone.Item.Count + $dtsHT.NMToUpdateSteam.Item.Count
+            $ProgressCurrent = 0
+            if (($ScriptHT.Config.Pref_Quality -eq "4K") -and (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0))) {
+                $gui.Window.Dispatcher.invoke("Normal",[action]{
+                    if ($SkinsDownloaded) { New_Line -Break -Paragraph "P_Execution" }
+                    New_Line -Text "Téléchargement des NormalMaps ..." -Bold -Paragraph "P_Execution"
+                    $gui.PB_Progress.Maximum = $ProgressMaxValue
+                    $gui.PB_Progress.Value = 0
+                })
+                foreach ($Installation in $ScriptHT.Installations) {
+                    $Database = "NMToUpdate$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $destFile = $ScriptHT.DwlFolder + "\NM\" + $row.ZipName
+                        $ProgressCurrent++
+                        if (Test-Path $destFile) {
+                            $gui.Window.Dispatcher.invoke("Normal",[action]{
+                                New_Line -Text "Fichier déjà téléchargé : $($row.ZipName)" -Paragraph "P_Execution"
+                                $gui.PB_Progress.Value = $ProgressCurrent
+                            })
+                        }
+                        else {
+                            $gui.Window.Dispatcher.invoke("Normal",[action]{
+                                New_Line -Text "Téléchargement en cours : $($row.ZipName) ($($row.FileSize)) ..." -Paragraph "P_Execution"
+                            })
+                            Download_Files -Url $row.FileUrl -TargetFile $destFile
+                            $gui.Window.Dispatcher.invoke("Normal",[action]{
+                                $gui.PB_Progress.Value = $ProgressCurrent
+                            })
+                        }   
+                    }
+                }
+            }
+            # Unzip Skins Collections
             $ProgressMaxValue = $dtsHT.SkinsToUpdateStandAlone.Item.Count + $dtsHT.SkinsToUpdateSteam.Item.Count
             $ProgressCurrent = 0
             if (($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0)) {
@@ -1100,6 +1266,57 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     }
                 }
             }
+            # Unzip NormalMaps si 4K
+            $ProgressMaxValue = $dtsHT.NMToUpdateStandAlone.Item.Count + $dtsHT.NMToUpdateSteam.Item.Count
+            $ProgressCurrent = 0
+            if (($ScriptHT.Config.Pref_Quality -eq "4K") -and (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0))) {
+                $gui.Window.Dispatcher.invoke("Normal",[action]{
+                    New_Line -Break -Paragraph "P_Execution"
+                    New_Line -Text "Installation des NormalMaps ..." -Bold -Paragraph "P_Execution"
+                    $gui.PB_Progress.Maximum = $ProgressMaxValue
+                    $gui.PB_Progress.Value = 0
+                })
+                foreach ($Installation in $ScriptHT.Installations) {
+                    $Database = "NMToUpdate$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $ZipFile = ("{0}\NM\{1}" -f $ScriptHT.DwlFolder,$row.ZipName)
+                        $SaveFolder = $row.ParentFolder + "\Original"
+                        $File2Save = $row.ParentFolder + "\" + $row.FileName
+                        # Sauvegarde de la NM Original si besoin
+                        if ($row.OriginalSaved -eq $false) {
+                            New-Item -Path $SaveFolder -ItemType Directory -Force
+                            Copy-Item $File2Save -Destination $SaveFolder -Force
+                        }
+                        $ProgressCurrent++
+                        $gui.Window.Dispatcher.invoke("Normal",[action]{
+                            New_Line -Text "Installation $Installation : $($row.FileName) ..." -Paragraph "P_Execution"
+                        })
+                        $testUnzip = Unzip_File -ZipFile $ZipFile -DestFolder $row.ParentFolder
+                        $gui.Window.Dispatcher.invoke("Normal",[action]{
+                            if ($testUnzip -eq $false) {
+                                New_Line -Text "Erreur lors de l'installation de la NormalMap" -Paragraph "P_Execution" -Foreground "Red"
+                            }
+                            $gui.PB_Progress.Value = $ProgressCurrent
+                        })
+                    }
+                }
+            }
+            # Rétablissement des NormalMaps Originaux si 2K
+            if (($ScriptHT.Config.Pref_Quality -eq "2K") -and (($dtsHT.NMOriginalStandAlone.Item.Count -gt 0) -or ($dtsHT.NMOriginalSteam.Item.Count -gt 0))) {
+                $gui.Window.Dispatcher.invoke("Normal",[action]{
+                    New_Line -Break -Paragraph "P_Execution"
+                    New_Line -Text "Restauration des NormalMaps Originaux ..." -Bold -Paragraph "P_Execution"
+                })
+                foreach ($Installation in $ScriptHT.Installations) {
+                    $Database = "NMOriginal$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $SaveFolder = $row.ParentFolder + "\Original"
+                        $File2Restore = $row.ParentFolder + "\Original\" + $row.FileName
+                        Copy-Item $File2Restore -Destination $row.ParentFolder -Force
+                        Remove-Item -Path $SaveFolder -Recurse -Confirm:$false -Force
+                    }
+                }
+            }
             # Suppression des 7-Zip téléchargés
             if ($ScriptHT.Config.Pref_KeepFiles -eq $false) {
                 $gui.Window.Dispatcher.invoke("Normal",[action]{
@@ -1107,9 +1324,16 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     New_Line -Text "Suppression des fichiers téléchargés ..." -Bold -Paragraph "P_Execution"
                 })
                 foreach ($Installation in $ScriptHT.Installations) {
+                    # Skins
                     $Database = "SkinsToUpdate$Installation"
                     foreach ($row in $dtsHT.$Database) {
                         $FileToDelete = $ScriptHT.DwlFolder + "\" + $row.Quality + "\" + $row.FileName
+                        Remove-Item -Path $FileToDelete -Force
+                    }
+                    # NormalMaps
+                    $Database = "NMToUpdate$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $FileToDelete = $ScriptHT.DwlFolder + "\NM\" + $row.ZipName
                         Remove-Item -Path $FileToDelete -Force
                     }
                 }
