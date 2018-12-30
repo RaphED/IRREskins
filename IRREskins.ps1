@@ -540,14 +540,33 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     # LOGIC - Scan des NormalMaps locales
     function Scan_LocalNM ($LocalPath,$Database) {
         $LocalDatabase = "Local" + $Database + "NM"
+        $LocalOriginalDatabase = "NMOriginal$Database"
         $LocalPath = $LocalPath.Replace("\skins","\planes")
         Get-ChildItem -Path "$LocalPath\*\*\*_B.dds" -File | ForEach-Object {
+            $ParentFolder = [System.IO.Path]::GetDirectoryName($_)
+            $FileName = $_.Name
+            $PlaneType = $_.Name.Split('_')[0]
+            $testPathOriginal = "$ParentFolder\Original\$FileName"
+            # Sauvegarde des Originaux
+            if (Test-Path $testPathOriginal) {
+                $OriginalSaved = $true
+                $rowOri = $dtsHT.$LocalOriginalDatabase.NewRow()
+                $rowOri["ParentFolder"] = $ParentFolder
+                $rowOri["FileName"] = $FileName
+                $rowOri["PlaneType"] = $PlaneType
+                $dtsHT.$LocalOriginalDatabase.Rows.Add($rowOri)
+            }
+            else {
+                $OriginalSaved = $false
+            }
             $row = $dtsHT.$LocalDatabase.NewRow()
             $row["FilePath"] = $_.FullName
-            $row["FileName"] = $_.Name
+            $row["ParentFolder"] = $ParentFolder
+            $row["FileName"] = $FileName
             $row["FileDate"] = $_.LastWriteTime.ToString("yyyyMMdd")
-            $row["PlaneType"] = $_.Name.Split('_')[0]
+            $row["PlaneType"] = $PlaneType
             $row["Quality"] = if ($_.Length -gt 6000000) { "4K" } else { "2K" }
+            $row["OriginalSaved"] = $OriginalSaved
             $dtsHT.$LocalDatabase.Rows.Add($row)
         }
     }
@@ -705,15 +724,16 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         foreach ($rowNM in $dtsHT.OnlineNM) {
             # On cherche la correspondance
             $dvLocalNM.RowFilter = "PlaneType = '$($rowNM.PlaneType)'"
-            # Si on a pas la skin locale en 4K ou date antérieur, on ajoute la NormalMap au download
+            # Si on a pas la NormalMap locale en 4K ou date antérieur, on l'ajoute au download
             if (($dvLocalNM.Quality -eq "2K") -or (($dvLocalNM.Quality -eq "4K") -and ($dvLocalNM.FileDate -lt $rowNM.FileDate))) {
                 $row = $dtsHT.$2UpdateDatabase.NewRow()
                 $row["FileUrl"] = $rowNM.FileUrl
-                $row["FilePath"] = $dvLocalNM.FilePath
+                $row["ParentFolder"] = $dvLocalNM.ParentFolder
                 $row["FileName"] = $dvLocalNM.FileName
                 $row["FileSize"] = $rowNM.FileSize
                 $row["FileDate"] = $rowNM.FileDate
                 $row["PlaneType"] = $dvLocalNM.PlaneType
+                $row["OriginalSaved"] = $dvLocalNM.OriginalSaved
                 $dtsHT.$2UpdateDatabase.Rows.Add($row)
             }
         }
@@ -951,9 +971,10 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         $onlineSkinsCols = @("Tag","FileUrl","FileName","FileSize","FileDate","PlaneType","SkinCollection","Quality")
         $onlineNMCols = @("FileUrl","FileName","FileSize","FileDate","PlaneType")
         $localSkinsCols = @("Tag","FilePath","FileName","FileDate","PlaneType","SkinCollection","Quality")
-        $localNMCols = @("FilePath","FileName","FileDate","PlaneType","Quality")
+        $localNMCols = @("FilePath","ParentFolder","FileName","FileDate","PlaneType","Quality","OriginalSaved")
         $Skins2UpdateCols = @("Tag","FileUrl","FileName","FileSize","FileDate","PlaneType","SkinCollection","Quality")
-        $NM2UpdateCols = @("FileUrl","FilePath","FileName","FileSize","FileDate","PlaneType")
+        $NM2UpdateCols = @("FileUrl","ParentFolder","FileName","FileSize","FileDate","PlaneType","OriginalSaved")
+        $NMOriginalCols = @("ParentFolder","FileName","PlaneType")
         # DataTables HT
         ## OnlineSkins
         $dtsHT.OnlineSkins = New-Object System.Data.Datatable
@@ -967,24 +988,30 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         ## LocalStandAloneNM
         $dtsHT.LocalStandAloneNM = New-Object System.Data.Datatable
         foreach ($col in $localNMCols) { [Void]$dtsHT.LocalStandAloneNM.Columns.Add($col) }
-        ## LocalSteam
-        $dtsHT.LocalSteam = New-Object System.Data.Datatable
-        foreach ($col in $localSkinsCols) { [Void]$dtsHT.LocalSteam.Columns.Add($col) }
-        ## LocalSteamNM
-        $dtsHT.LocalSteamNM = New-Object System.Data.Datatable
-        foreach ($col in $localNMCols) { [Void]$dtsHT.LocalSteamNM.Columns.Add($col) }
         ## SkinsToUpdateStandAlone
         $dtsHT.SkinsToUpdateStandAlone = New-Object System.Data.Datatable
         foreach ($col in $Skins2UpdateCols) { [Void]$dtsHT.SkinsToUpdateStandAlone.Columns.Add($col) }
         ## NMToUpdateStandAlone
         $dtsHT.NMToUpdateStandAlone = New-Object System.Data.Datatable
         foreach ($col in $NM2UpdateCols) { [Void]$dtsHT.NMToUpdateStandAlone.Columns.Add($col) }
+        ## NMOriginalStandAlone
+        $dtsHT.NMOriginalStandAlone = New-Object System.Data.Datatable
+        foreach ($col in $NMOriginalCols) { [Void]$dtsHT.NMOriginalStandAlone.Columns.Add($col) }
+        ## LocalSteam
+        $dtsHT.LocalSteam = New-Object System.Data.Datatable
+        foreach ($col in $localSkinsCols) { [Void]$dtsHT.LocalSteam.Columns.Add($col) }
+        ## LocalSteamNM
+        $dtsHT.LocalSteamNM = New-Object System.Data.Datatable
+        foreach ($col in $localNMCols) { [Void]$dtsHT.LocalSteamNM.Columns.Add($col) }
         ## SkinsToUpdateSteam
         $dtsHT.SkinsToUpdateSteam = New-Object System.Data.Datatable
         foreach ($col in $Skins2UpdateCols) { [Void]$dtsHT.SkinsToUpdateSteam.Columns.Add($col) }
         ## NMToUpdateSteam
         $dtsHT.NMToUpdateSteam = New-Object System.Data.Datatable
         foreach ($col in $NM2UpdateCols) { [Void]$dtsHT.NMToUpdateSteam.Columns.Add($col) }
+        ## NMOriginalSteam
+        $dtsHT.NMOriginalSteam = New-Object System.Data.Datatable
+        foreach ($col in $NMOriginalCols) { [Void]$dtsHT.NMOriginalSteam.Columns.Add($col) }
         # Ajoute les fonctions au Runspace
         $FunctionList = @("Scan_OnlineSkins","Scan_OnlineNM","Scan_LocalSkins","Scan_LocalNM","Check_ToDelete","Compare_Collections","Compare_NormalMaps","Display_ScanResults","New_Line")
         $initialSessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
