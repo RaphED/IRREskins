@@ -1112,7 +1112,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                 $gui.BT_Scan.IsEnabled = $true
                 $gui.GP_Paths.IsEnabled = $true
                 $gui.GP_Preferences.IsEnabled = $true
-                if (($ScriptHT.ToDeleteStandAlone -gt 0) -or ($ScriptHT.ToDeleteSteam -gt 0) -or ($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0) -or ($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0)) {
+                if (($ScriptHT.ToDeleteStandAlone -gt 0) -or ($ScriptHT.ToDeleteSteam -gt 0) -or ($dtsHT.SkinsToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.SkinsToUpdateSteam.Item.Count -gt 0) -or (($ScriptHT.Config.Pref_Quality -eq "4K") -and (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0))) -or (($ScriptHT.Config.Pref_Quality -eq "2K") -and (($dtsHT.NMOriginalStandAlone.Item.Count -gt 0) -or ($dtsHT.NMOriginalSteam.Item.Count -gt 0))) ) {
                         $gui.BT_Apply.IsEnabled = $true
                 }
             })
@@ -1203,10 +1203,10 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                 }
                 $SkinsDownloaded = $true
             }
-            # Téléchargement NormalMaps
+            # Téléchargement NormalMaps si 4K
             $ProgressMaxValue = $dtsHT.NMToUpdateStandAlone.Item.Count + $dtsHT.NMToUpdateSteam.Item.Count
             $ProgressCurrent = 0
-            if (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0)) {
+            if (($ScriptHT.Config.Pref_Quality -eq "4K") -and (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0))) {
                 $gui.Window.Dispatcher.invoke("Normal",[action]{
                     if ($SkinsDownloaded) { New_Line -Break -Paragraph "P_Execution" }
                     New_Line -Text "Téléchargement des NormalMaps ..." -Bold -Paragraph "P_Execution"
@@ -1235,7 +1235,6 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                         }   
                     }
                 }
-                $NormalMapsDownloaded = $true
             }
             # Unzip Skins Collections
             $ProgressMaxValue = $dtsHT.SkinsToUpdateStandAlone.Item.Count + $dtsHT.SkinsToUpdateSteam.Item.Count
@@ -1267,10 +1266,10 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     }
                 }
             }
-            # Unzip NormalMaps
+            # Unzip NormalMaps si 4K
             $ProgressMaxValue = $dtsHT.NMToUpdateStandAlone.Item.Count + $dtsHT.NMToUpdateSteam.Item.Count
             $ProgressCurrent = 0
-            if (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0)) {
+            if (($ScriptHT.Config.Pref_Quality -eq "4K") -and (($dtsHT.NMToUpdateStandAlone.Item.Count -gt 0) -or ($dtsHT.NMToUpdateSteam.Item.Count -gt 0))) {
                 $gui.Window.Dispatcher.invoke("Normal",[action]{
                     New_Line -Break -Paragraph "P_Execution"
                     New_Line -Text "Installation des NormalMaps ..." -Bold -Paragraph "P_Execution"
@@ -1286,7 +1285,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                         # Sauvegarde de la NM Original si besoin
                         if ($row.OriginalSaved -eq $false) {
                             New-Item -Path $SaveFolder -ItemType Directory -Force
-                            Copy-Item $File2Save -Destination $SaveFolder
+                            Copy-Item $File2Save -Destination $SaveFolder -Force
                         }
                         $ProgressCurrent++
                         $gui.Window.Dispatcher.invoke("Normal",[action]{
@@ -1299,6 +1298,22 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                             }
                             $gui.PB_Progress.Value = $ProgressCurrent
                         })
+                    }
+                }
+            }
+            # Rétablissement des NormalMaps Originaux si 2K
+            if (($ScriptHT.Config.Pref_Quality -eq "2K") -and (($dtsHT.NMOriginalStandAlone.Item.Count -gt 0) -or ($dtsHT.NMOriginalSteam.Item.Count -gt 0))) {
+                $gui.Window.Dispatcher.invoke("Normal",[action]{
+                    New_Line -Break -Paragraph "P_Execution"
+                    New_Line -Text "Restauration des NormalMaps Originaux ..." -Bold -Paragraph "P_Execution"
+                })
+                foreach ($Installation in $ScriptHT.Installations) {
+                    $Database = "NMOriginal$Installation"
+                    foreach ($row in $dtsHT.$Database) {
+                        $SaveFolder = $row.ParentFolder + "\Original"
+                        $File2Restore = $row.ParentFolder + "\Original\" + $row.FileName
+                        Copy-Item $File2Restore -Destination $row.ParentFolder -Force
+                        Remove-Item -Path $SaveFolder -Recurse -Confirm:$false -Force
                     }
                 }
             }
