@@ -198,85 +198,85 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         $SkinsToUpdateDatabase = "SkinsToUpdate$Database"
         $NMToUpdateDatabase = "NMToUpdate$Database"
         $LocalOriginalDatabase = "NMOriginal$Database"
-        New_Line -Text $Title -Bold -Paragraph "P_Execution"
-        New_Line -Break -Paragraph "P_Execution"
+        New_Line -Text $Title -Bold -Paragraph "P_Execution" -ScrollOff
+        New_Line -Break -Paragraph "P_Execution" -ScrollOff
         if ($ScriptHT.$ToDeleteDatabase -gt 0) {
-            New_Line -Text "Skins obsolètes à supprimer :" -Bold -Foreground "Red" -Paragraph "P_Execution"
-            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Text "Skins obsolètes à supprimer :" -Bold -Foreground "Red" -Paragraph "P_Execution" -ScrollOff
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
             for ($i = 0; $i -lt $ScriptHT.$ToDeleteDatabase.Count; $i++) {
-                New_Line -Text "$($ScriptHT.$ToDeleteDatabase[$i])" -Paragraph "P_Execution"
+                New_Line -Text "$($ScriptHT.$ToDeleteDatabase[$i])" -Paragraph "P_Execution" -ScrollOff
             }
-            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
         }
-        New_Line -Text "Collections à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution"
-        New_Line -Break -Paragraph "P_Execution"
+        New_Line -Text "Collections à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+        New_Line -Break -Paragraph "P_Execution" -ScrollOff
         if ($dtsHT.$SkinsToUpdateDatabase.Item.Count -eq 1) {
             $FileDate = $dtsHT.$SkinsToUpdateDatabase.FileDate
-            $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-            $Collection = ("{0}`t{1}`tQualité {2} - {3}`t{4}"-f    $dtsHT.$SkinsToUpdateDatabase.Tag,
-                                                $dtsHT.$SkinsToUpdateDatabase.SkinCollection,
-                                                $dtsHT.$SkinsToUpdateDatabase.Quality,
-                                                $dtsHT.$SkinsToUpdateDatabase.FileSize,
-                                                $FileDate)
-            New_Line -Text $Collection -Paragraph "P_Execution"
+            $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+            $Collection = ("{0}  {1}  Qualité {2} - {3}  {4}"-f     $dtsHT.$SkinsToUpdateDatabase.Tag,
+                                                                    $dtsHT.$SkinsToUpdateDatabase.SkinCollection,
+                                                                    $dtsHT.$SkinsToUpdateDatabase.Quality,
+                                                                    $dtsHT.$SkinsToUpdateDatabase.FileSize,
+                                                                    $FileDate)
+            New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
         }
         elseif ($dtsHT.$SkinsToUpdateDatabase.Item.Count -gt 1) {
             for ($i = 0; $i -lt $dtsHT.$SkinsToUpdateDatabase.Item.Count; $i++) {
                 $FileDate = $dtsHT.$SkinsToUpdateDatabase.FileDate[$i]
-                $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-                $Collection = ("{0}`t{1}`tQualité {2} - {3}`t{4}"-f    $dtsHT.$SkinsToUpdateDatabase.Tag[$i],
-                                                    $dtsHT.$SkinsToUpdateDatabase.SkinCollection[$i],
-                                                    $dtsHT.$SkinsToUpdateDatabase.Quality[$i],
-                                                    $dtsHT.$SkinsToUpdateDatabase.FileSize[$i],
-                                                    $FileDate)
-                New_Line -Text $Collection -Paragraph "P_Execution"
+                $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+                $Collection = ("{0}  {1}  Qualité {2} - {3}  {4}"-f     $dtsHT.$SkinsToUpdateDatabase.Tag[$i],
+                                                                        $dtsHT.$SkinsToUpdateDatabase.SkinCollection[$i],
+                                                                        $dtsHT.$SkinsToUpdateDatabase.Quality[$i],
+                                                                        $dtsHT.$SkinsToUpdateDatabase.FileSize[$i],
+                                                                        $FileDate)
+                New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
             }
         }
         else {
-            New_Line -Text "   \o/ Collections à jour" -Foreground "Green" -Paragraph "P_Execution"
+            New_Line -Text "   \o/ Collections à jour" -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
         }
         if ($ScriptHT.Config.Pref_Quality -eq "4K") {
-            New_Line -Break -Paragraph "P_Execution"
-            New_Line -Text "NormalMaps à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution"
-            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
+            New_Line -Text "NormalMaps à installer / Mettre à jour :" -Bold -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
             if ($dtsHT.$NMToUpdateDatabase.Item.Count -eq 1) {
                 $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate
-                $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-                $Collection = ("{0}`t{1}`t{2}"-f    $dtsHT.$NMToUpdateDatabase.PlaneType,
-                                                    $dtsHT.$NMToUpdateDatabase.FileSize,
-                                                    $FileDate)
-                New_Line -Text $Collection -Paragraph "P_Execution"
+                $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+                $Collection = ("{0}  Qualité 4K - {1}  {2}"-f   $dtsHT.$NMToUpdateDatabase.PlaneType,
+                                                                $dtsHT.$NMToUpdateDatabase.FileSize,
+                                                                $FileDate)
+                New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
             }
             elseif ($dtsHT.$NMToUpdateDatabase.Item.Count -gt 1) {
                 for ($i = 0; $i -lt $dtsHT.$NMToUpdateDatabase.Item.Count; $i++) {
                     $FileDate = $dtsHT.$NMToUpdateDatabase.FileDate[$i]
-                    $FileDate = ("{0}/{1}/{2}" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
-                    $Collection = ("{0}`t{1}`t{2}"-f    $dtsHT.$NMToUpdateDatabase.PlaneType[$i],
-                                                        $dtsHT.$NMToUpdateDatabase.FileSize[$i],
-                                                        $FileDate)
-                    New_Line -Text $Collection -Paragraph "P_Execution"
+                    $FileDate = ("({0}/{1}/{2})" -f $FileDate.Substring(6,2),$FileDate.Substring(4,2),$FileDate.Substring(0,4))
+                    $Collection = ("{0}  Qualité 4K - {1}  {2}"-f   $dtsHT.$NMToUpdateDatabase.PlaneType[$i],
+                                                                    $dtsHT.$NMToUpdateDatabase.FileSize[$i],
+                                                                    $FileDate)
+                    New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
                 }
             }
             else {
-                New_Line -Text "   \o/ NormalMaps à jour" -Foreground "Green" -Paragraph "P_Execution"
+                New_Line -Text "   \o/ NormalMaps à jour" -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
             }
         }
         if (($ScriptHT.Config.Pref_Quality -eq "2K") -and ($dtsHT.$LocalOriginalDatabase.Item.Count -gt 0)) {
-            New_Line -Break -Paragraph "P_Execution"
-            New_Line -Text "NormalMaps Originaux à rétablir :" -Bold -Foreground "Green" -Paragraph "P_Execution"
-            New_Line -Break -Paragraph "P_Execution"
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
+            New_Line -Text "NormalMaps Originaux à rétablir :" -Bold -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
+            New_Line -Break -Paragraph "P_Execution" -ScrollOff
             if ($dtsHT.$LocalOriginalDatabase.Item.Count -eq 1) {
-                $Collection = $dtsHT.$LocalOriginalDatabase.PlaneType
-                New_Line -Text $Collection -Paragraph "P_Execution"
+                $Collection = ("{0}  Qualité 2K  Original"-f  $dtsHT.$LocalOriginalDatabase.PlaneType)
+                New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
             }
             elseif ($dtsHT.$LocalOriginalDatabase.Item.Count -gt 1) {
                 for ($i = 0; $i -lt $dtsHT.$LocalOriginalDatabase.Item.Count; $i++) {
-                    $Collection = $dtsHT.$LocalOriginalDatabase.PlaneType[$i]
-                    New_Line -Text $Collection -Paragraph "P_Execution"
+                    $Collection = ("{0}  Qualité 2K  Original"-f  $dtsHT.$LocalOriginalDatabase.PlaneType[$i])
+                    New_Line -Text $Collection -Paragraph "P_Execution" -ScrollOff
                 }
             }
             else {
-                New_Line -Text "   \o/ NormalMaps Originaux à jour" -Foreground "Green" -Paragraph "P_Execution"
+                New_Line -Text "   \o/ NormalMaps Originaux à jour" -Foreground "Green" -Paragraph "P_Execution" -ScrollOff
             }
         }
         $gui.GP_Paths.IsEnabled = $true
@@ -1103,7 +1103,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             # Résultats Steam
             if ($ScriptHT.Config.Pref_Steam) {
                 $gui.Window.Dispatcher.invoke("Normal",[action]{
-                    if ($StandAloneDisplay) { New_Line -Break -Paragraph "P_Execution" }
+                    if ($StandAloneDisplay) { New_Line -Break -Paragraph "P_Execution" -ScrollOff }
                     Display_ScanResults -Database "Steam"
                 })
             }
