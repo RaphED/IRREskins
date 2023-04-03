@@ -542,7 +542,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
      # LOGIC - Scan des skins locales
     function Scan_LocalSkins ($LocalPath,$Database,$Tags) {
         $LocalDatabase = "Local$Database"
-        Get-ChildItem -Path "$LocalPath\*\*" -File | Where-Object {$Tags -contains $_.Name.Split('_')[1]} | ForEach-Object {
+        Get-ChildItem -Path "$LocalPath\*\*" -File | Where-Object {$Tags -contains $_.Name.Split('_')[1] -and $_.Name -notlike "*_&1#1.dds"} | ForEach-Object {
             $row = $dtsHT.$LocalDatabase.NewRow()
             $row["Tag"] = $_.Name.Split('_')[1]
             $row["FilePath"] = $_.FullName
@@ -779,7 +779,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
 #region Initialisations
 
     # Base Script Config
-    $version        = 2.0
+    $version        = 2.1
     $baseUrl        = "https://www.lesirreductibles.com/irreskins"
     $fileConf       = "config.json"
 
