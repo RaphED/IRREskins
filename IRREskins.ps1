@@ -537,22 +537,45 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         foreach ($skin in $ListSkinsToDelete) {
             $dvLocalSkins.RowFilter = "FileName = '$skin'"
             Remove-Item -Path $dvLocalSkins.FilePath -Force
+			#supprimer le second fichier pour les skins à deux fichiers
+			if($dvLocalSkins.FileName -like "*&1*"){
+				Remove-Item -Path $dvLocalSkins.FilePath.replace(".dds","#1.dds") -Force
+			}
         }
     }
      # LOGIC - Scan des skins locales
     function Scan_LocalSkins ($LocalPath,$Database,$Tags) {
-        $LocalDatabase = "Local$Database"
-        Get-ChildItem -Path "$LocalPath\*\*" -File | Where-Object {$Tags -contains $_.Name.Split('_')[1] -and $_.Name -notlike "*_&1#1.dds"} | ForEach-Object {
-            $row = $dtsHT.$LocalDatabase.NewRow()
-            $row["Tag"] = $_.Name.Split('_')[1]
-            $row["FilePath"] = $_.FullName
-            $row["FileName"] = $_.Name
-            $row["FileDate"] = $_.LastWriteTime.ToString("yyyyMMdd")
-            $row["PlaneType"] = $_.Name.Split('_')[0]
-            $row["SkinCollection"] = $_.Name.Split('_')[0..3] -join ("_")
-            $row["Quality"] = if ($_.Length -gt 6000000) { "4K" } else { "2K" }
-            $dtsHT.$LocalDatabase.Rows.Add($row)
+        Write-Output "SCAN LOCAL" >> scan.log
+		$LocalDatabase = "Local$Database"
+        Get-ChildItem -Path "$LocalPath\*\*" -File -Filter *.dds | Where-Object {$_.Name -like "*IRRE*" -and $_.Name -notlike "*&1#1.dds"} | ForEach-Object { #Only works for IRRE files
+            #Manage the two naming formats
+			if($_.Name.Split('_')[0] -eq "IRRE") { #new format, starting with IRRE
+				$row = $dtsHT.$LocalDatabase.NewRow()
+				$row["Tag"] = $_.Name.Split('_')[0]
+				$row["FilePath"] = $_.FullName
+				$row["FileName"] = $_.Name
+				$row["FileDate"] = $_.CreationTime.ToString("yyyyMMdd")
+				$row["PlaneType"] = $_.Name.Split('_')[1]
+				$row["SkinCollection"] = $_.Name.replace("&1","").Split('.')[0].Split('_')[0..2] -join ("_")
+				$row["Quality"] = if ($_.Length -gt 6000000) { "4K" } else { "2K" }
+				$dtsHT.$LocalDatabase.Rows.Add($row)
+				
+			}
+			else {
+				$row = $dtsHT.$LocalDatabase.NewRow()
+				$row["Tag"] = $_.Name.Split('_')[1]
+				$row["FilePath"] = $_.FullName
+				$row["FileName"] = $_.Name
+				$row["FileDate"] = $_.CreationTime.ToString("yyyyMMdd")
+				$row["PlaneType"] = $_.Name.Split('_')[0]
+				$row["SkinCollection"] = $_.Name.replace("&1","").Split('.')[0].Split('_')[0..3] -join ("_")
+				$row["Quality"] = if ($_.Length -gt 6000000) { "4K" } else { "2K" }
+				$dtsHT.$LocalDatabase.Rows.Add($row)
+			}
+			Write-Output $row >> scan.log
         }
+		
+		
     }
     # LOGIC - Scan des NormalMaps locales
     function Scan_LocalNM ($LocalPath,$Database) {
@@ -589,6 +612,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     }
     # LOGIC - Scan des skins onlines
     function Scan_OnlineSkins ($baseUrl,$Tag,$Quality) {
+		Write-Output "SCAN ONLINE" >> scan.log
         $URI = "$baseUrl/?dir=$Tag/$Quality"
         $HTML = Invoke-WebRequest -Uri $URI
         $fileNames = New-Object System.Collections.Generic.List[System.Object]
@@ -603,11 +627,20 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
             $row["FileUrl"] = ("{0}/{1}/{2}/{3}" -f $baseUrl,$Tag,$Quality,$fileName)
             $row["FileName"] = $fileName
             $row["FileSize"] = $fileSize
-            $row["FileDate"] = $fileName.Split('_')[4].Substring(0,$fileName.Split('_')[4].Length-3)
-            $row["PlaneType"] = $fileName.Split('_')[0]
-            $row["SkinCollection"] = ($fileName.Split('_')[0..3] -join ("_"))
+			#manage the tow files format (new one starts with IRRE
+			if($fileName.Split('_')[0] -eq "IRRE") {
+				$row["PlaneType"] = $fileName.Split('_')[1]
+				$row["SkinCollection"] = ($fileName.Split('_')[0..2] -join ("_"))
+				$row["FileDate"] = $fileName.Split('_')[3].Substring(0,$fileName.Split('_')[3].Length-3)
+			}
+			else{
+				$row["PlaneType"] = $fileName.Split('_')[0]
+				$row["SkinCollection"] = ($fileName.Split('_')[0..3] -join ("_"))
+				$row["FileDate"] = $fileName.Split('_')[4].Substring(0,$fileName.Split('_')[4].Length-3)
+			}
             $row["Quality"] = $Quality
             $dtsHT.OnlineSkins.Rows.Add($row)
+			Write-Output $row >> scan.log
         }
     }
     # LOGIC - Scan des NormalMaps onlines
@@ -655,10 +688,12 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
         $listToDownload = New-Object System.Collections.Generic.List[System.Object]
         # Comparaison des skins locales avec les skins Onlines
         foreach ($row in $dtLocalCollection) {
+			Write-Output $row >> scan.log
             $findSkin = $row.SkinCollection
             $fileDate = $row.FileDate
             $fileQuality = $row.Quality
             $dvOnlineSkins.RowFilter = "SkinCollection = '$findSkin'"
+			Write-Output $dvOnlineSkins >> scan.log
             # Si on a les deux qualités
             if ($dvOnlineSkins.Count -eq 2) {
                 foreach ($Online in $dvOnlineSkins) {
@@ -684,18 +719,25 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
                     if ($dvOnlineSkins.Quality -eq $fileQuality) {
                         # Si elle est plus récente on la prend
                         if ($dvOnlineSkins.FileDate -gt $fileDate) {
+							Write-Output "plus récente on la prend" >> scan.log
                             $listToDownload.Add($dvOnlineSkins.FileUrl)
                         }
                     }
                     # Sinon ben on la prend
-                    else { $listToDownload.Add($dvOnlineSkins.FileUrl) }
+                    else { 
+						Write-Output "Sinon ben on la prend" >> scan.log
+						$listToDownload.Add($dvOnlineSkins.FileUrl)
+					}
                 }
                 # Si elle correspond PAS aux préférences
                 else {
                     # Si la qualité de la locale ne correspond non plus aux préférences
                     if ($fileQuality -ne $QualityPref) {
                         # On la prend si plus récente
-                        if ($dvOnlineSkins.FileDate -gt $fileDate) { $listToDownload.Add($dvOnlineSkins.FileUrl) }
+                        if ($dvOnlineSkins.FileDate -gt $fileDate) { 
+							Write-Output "On la prend si plus récente" >> scan.log
+							$listToDownload.Add($dvOnlineSkins.FileUrl) 
+						}
                     }
                 }
             }
@@ -779,7 +821,7 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
 #region Initialisations
 
     # Base Script Config
-    $version        = 2.1
+    $version        = 2.3
     $baseUrl        = "https://www.lesirreductibles.com/irreskins"
     $fileConf       = "config.json"
 
@@ -985,6 +1027,8 @@ Title="IRREskins" FontFamily="Calibri" FontSize="14" Width="600" SizeToContent="
     })
     # Action sur le bouton de Scan
     $gui.BT_Scan.add_Click({
+		Write-Output "SCAN LAUNCHED" > scan.log
+		
         # Columns
         $onlineSkinsCols = @("Tag","FileUrl","FileName","FileSize","FileDate","PlaneType","SkinCollection","Quality")
         $onlineNMCols = @("FileUrl","FileName","FileSize","FileDate","PlaneType")
